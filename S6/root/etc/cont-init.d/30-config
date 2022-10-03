@@ -1,0 +1,83 @@
+#!/usr/bin/with-contenv bash
+
+log () {
+    echo -e "[30-config] $@"
+}
+log_title () {
+	echo ""
+	echo "=============================================="
+	log "$@"
+	echo "=============================================="
+	echo ""
+}
+
+log_title "are we still in root? whoami: $(whoami)"
+
+mkdir -p /config/{extensions,data,workspace,.ssh}
+
+
+log_title "check and change user/group id if PUID and PGID have different default value"
+
+if [ -n ${PUID} ] || [ -n ${PGID } ] ; then
+	# change gid of group stduser
+	sudo groupmod -g ${PGID} ${USER_NAME}
+	# change uid and user group to new group id
+	sudo usermod -u ${PUID} -g ${PGID} ${USER_NAME}
+	# update permission for all directory and file
+	# => no need now because does not have any file created in $HOME yet
+	# find / -uid 800 -exec chown -v -h 900 '{}' \; && \
+	# find / -gid 700 -exec chgrp -v 600 '{}' \;
+fi
+log_title "whoami: $(whoami)"
+
+log_title "check and change user sudo password"
+if [ -n "${SUDO_PASSWORD}" ] || [ -n "${SUDO_PASSWORD_HASH}" ]; then
+    log "setting up sudo access"
+    if ! grep -q '${USE_NAME}' /etc/sudoers; then
+        log "adding ${USER_NAME} to sudoers"
+        log "${USER_NAME} ALL=(ALL:ALL) ALL" >> /etc/sudoers
+    fi
+    if [ -n "${SUDO_PASSWORD_HASH}" ]; then
+        log "setting sudo password using sudo password hash"
+        sed -i "s|^${USER_NAME}:\!:|${GROUP_NAME}:${SUDO_PASSWORD_HASH}:|" /etc/shadow
+    else
+        log "setting sudo password using SUDO_PASSWORD env var"
+        log -e "${SUDO_PASSWORD}\n${SUDO_PASSWORD}" | passwd ${USER_NAME}
+    fi
+fi
+
+# enable zsh for abc user
+#sed -i 's/abc:x:911:911::\/config:\/bin\/false/abc:x:911:911::\/config:\/bin\/zsh/g' /etc/passwd && \
+# or usermod --shell /bin/zsh abc
+
+# [[ ! -f /config/.bashrc ]] && \
+#     cp /root/.bashrc /config/.bashrc
+# [[ ! -f /config/.profile ]] && \
+#     cp /root/.profile /config/.profile
+
+# permissions
+# if [ -f "/usr/bin/find" ] && [ -f "/usr/bin/xargs" ]; then
+if [ -f "/usr/bin/find" ]; then
+    # CORES=$(nproc --all)
+    # # Split workload between config and workspace
+    # echo "setting permissions::configuration"
+    # find /config -path /config/workspace -prune -false -o -type d -print0 | \
+    #     xargs --null -r --max-args=1 --max-procs=$((CORES*2*8)) \
+    #     chown -R abc:abc
+
+    find /config -not -path ${USER_HOME_DIR}/workspace -exec chown -R ${USER_NAME}:${GROUP_NAME} {} \;
+    chown ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/workspace
+else
+    # Set permissions on data mount
+    # do not decend into the workspace
+    # note: i saw this is not working in alpine
+    #chown -R abc:abc "$(ls /config -I workspace)"
+    dirs="$(ls /config -I workspace)"
+    for dir in $dirs ; do
+        log "value: $dir"
+        chown -R ${USER_NAME}:${GROUP_NAME} /config/$dir
+    done
+
+    chown ${USER_NAME}:${GROUP_NAME} /config/workspace
+    #ls -lash /config
+fi

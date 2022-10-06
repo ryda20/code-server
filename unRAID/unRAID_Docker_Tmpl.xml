@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<Container version="2">
+	<Name>ryda20_code-server</Name>
+	<Repository>ryda20/code-server:lasted</Repository>
+	<Registry>https://hub.docker.com/r/ryda20/code-server</Registry>
+	<Network>bridge</Network>
+	<MyIP/>
+	<Shell>bash</Shell>
+	<Privileged>false</Privileged>
+	<Support/>
+	<Project>https://github.com/ryda20/code-server</Project>
+	<Overview>this docker image contain (vs) code server, base on alpine linux&#xD;
+&#xD;
+internal port: 8080&#xD;
+	</Overview>
+	<Category>Productivity: Tools:</Category>
+	<WebUI>8080</WebUI>
+	<TemplateURL/>
+	<Icon/>
+	<ExtraParams/>
+	<PostArgs/>
+	<CPUset/>
+	<DateInstalled>1665048346</DateInstalled>
+	<DonateText/>
+	<DonateLink/>
+	<Requires/>
+	<Config Name="Workspace" Target="/stduser/workspace" Default="/stduser/workspace" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/devProjects/</Config>
+	<Config Name="PUID" Target="PUID" Default="99" Mode="" Description="nobody id" Type="Variable" Display="always" Required="false" Mask="false">99</Config>
+	<Config Name="PGID" Target="PGID" Default="100" Mode="" Description="nobody group" Type="Variable" Display="always" Required="false" Mask="false">100</Config>
+</Container>

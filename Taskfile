@@ -3,7 +3,7 @@ TF_DIR=${TF_DIR:-~/.Taskfile} && source ${TF_DIR}/Taskfile.template # MUST START
 ##regison USER ============================================================================================================
 REPOS=ryda20
 NAME=code-server
-VER=lasted
+VER=latest
 TAG_NAME=${REPOS}/${NAME}:${VER}
 TAG_NAME_S6=${TAG_NAME}.s6
 TAG_NAME_ROOTLESS=${TAG_NAME}.rootless

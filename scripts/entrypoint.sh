@@ -105,7 +105,7 @@ exec /app/code-server/bin/code-server \
 			--disable-telemetry \
 			--auth "${AUTH}" \
 			"${PROXY_DOMAIN_ARG}" \
-			"${DEFAULT_WORKSPACE:-${WORKSPACE_DIR}"
+			"${DEFAULT_WORKSPACE:-${WORKSPACE_DIR}}"
 '
 
 # bash startup file /etc/profile and load all file with .sh in /etc/profile.d/

@@ -34,7 +34,6 @@ fi
 # this mean, below only for this script session
 
 ### exec will replace running process (by root above) with the new one (by stdUser below)
-#
 
 ## check and change PUID PGID if specify
 log_title "changing UID/GID... to ${PUID}:${PGID}"
@@ -54,23 +53,13 @@ if [ -n ${PUID} ] || [ -n ${PGID} ]; then
 	chown ${USER_NAME}:${GROUP_NAME} ${USER_WORKSPACE_DIR}
 fi
 
-# log_title "disable another shells..."
-# # delete all line except /bin/bash
-# # sed -i '/^.*bash$/!d' /etc/shells
-# sed -i '/^\/bin\/bash$/!d' /etc/shells
-# log "allowed shell: $(cat /etc/shells)"
-
-log_title "default zsh shell go ${USER_NAME}"
-sed -i 's/stduser:\/bin\/bash$/stduser:\/bin\/zsh/' /etc/passwd
-
-log_title "setup for auto change to ${USER_NAME} when start bash shell"
-
-# change user on every run bash
-# to prevent run in root user, apply for rootless mode (don't use USER directive in dockerfile)
-# put this file to /etc/profile.d/any_name.sh, remember chown to root and chmod to 400 or 600
-# echo "exec su stduser" >> /etc/profile.d/switch_to_stduser.sh
-echo "exec su ${USER_NAME}" >>/root/.bashrc # or
-# echo "exec su ${USER_NAME}" >> /etc/profile.d/start.sh
+# # log_title "setup for auto change to ${USER_NAME} when start bash shell"
+# # change user on every run bash
+# # to prevent run in root user, apply for rootless mode (don't use USER directive in dockerfile)
+# # put this file to /etc/profile.d/any_name.sh, remember chown to root and chmod to 400 or 600
+# # echo "exec su ${USER_NAME}" >> /etc/profile.d/start.sh
+# # OR
+# echo "exec su ${USER_NAME}" >>/root/.bashrc #ENDRUN
 
 log_title "changing 'root' user to '${USER_NAME}'..."
 chmod 4755 $(which su)

@@ -28,7 +28,7 @@ ARG \
 # AND THE LAST LINE OF CODE, COMMAND WITH '#ENDRUN'
 # EXCEPT FOR THE LAST RUN, DONT WRITE #ENDRUN
 RUN \
-	if [ "${install_openrc}" == "yes" ] ; then \
+	if [[ "${install_openrc}" == "yes" ]] ; then \
 	echo "### Install OPENRC ###" ; \
 	apk add --update --no-cache openrc ; \
 	mkdir -p /run/openrc ; \
@@ -100,6 +100,17 @@ RUN \
 	chown ${USER_NAME}:${GROUP_NAME} ~/.zshrc #ENDRUN
 
 RUN \
+	# copy oh-my-zsh from root to user
+	cp -r /root/.oh-my-zsh /root/.zshrc ${USER_HOME_DIR}/ && \
+	chown -R ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/.oh-my-zsh && \
+	chown ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/.zshrc #ENDRUN
+
+
+
+
+
+
+RUN \
 	if [ "${install_sshd}" == "yes" ] ; then \
 	echo "### Install OpenSSH ###" ; \
 	apk add --no-cache openssh ; \
@@ -144,15 +155,25 @@ RUN \
 # 	# /usr/sbin/usermod
 # 	fi #ENDRUN
 
-RUN \
-	### End of RUN -> cleanup
-	rm -rf /tmp/* && \
-	rm -rf /var/cache/* #ENDRUN
-
 # HERE IS LAST RUN COMMAND, DONT WRITE ENDRUN
 # change all default shell ash to bash
 RUN \
-	sed 's_\/bin\/ash_\/bin\/bash_g' -i /etc/passwd
+	sed 's_\/bin\/ash_\/bin\/bash_g' -i /etc/passwd && \
+	# log_title "default zsh shell go ${USER_NAME}"
+	sed "s/${USER_NAME}:\/bin\/bash$/${USER_NAME}:\/bin\/zsh/" -i /etc/passwd && \
+	# log_title "setup for auto change to ${USER_NAME} when start bash shell"
+	# change user on every run bash
+	# to prevent run in root user, apply for rootless mode (don't use USER directive in dockerfile)
+	# put this file to /etc/profile.d/any_name.sh, remember chown to root and chmod to 400 or 600
+	# echo "exec su ${USER_NAME}" >> /etc/profile.d/start.sh
+	# OR
+	echo "exec su ${USER_NAME}" >> /root/.bashrc #ENDRUN
+
+RUN \
+	### End of RUN -> cleanup
+	rm -rf /tmp/* && \
+	rm -rf /var/cache/*
+
 
 
 EXPOSE 8080

@@ -10,6 +10,20 @@ TAG_NAME_ROOTLESS=${TAG_NAME}.rootless
 
 DOCKERFILE=Dockerfile
 
+# docker() {
+# 	echo "run docker command"
+# 	case "${1}" in
+# 	"build")
+# 		echo "build"
+# 		;;
+# 	"run")
+# 		echo "run"
+# 		;;
+# 	*)
+# 		echo "nothing"
+# 		;;
+# 	esac
+# }
 build() {
 	# all params: ${@}
 	# para 1: ${1}
@@ -123,6 +137,7 @@ code-server() {
 	docker run -it --rm \
 		--name code-server \
 		-v ~/gitlab:/workspace \
+		-v ~/gitlab/code-server/product4.7.1.json:/app/code-server/lib/vscode/product.json \
 		-p 8080:8080 \
 		-e PUID=501 \
 		-e PGID=20 \

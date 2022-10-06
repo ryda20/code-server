@@ -39,9 +39,9 @@ fi
 ## check and change PUID PGID if specify
 log_title "changing UID/GID..."
 if [ -n ${PUID} ] || [ -n ${PGID} ]; then
-	# change gid of group
+	log "change gid of group"
 	groupmod -og ${PGID} ${GROUP_NAME}
-	# change uid and user group to new group id
+	log "change uid and user group to new group id"
 	usermod -ou ${PUID} -g ${PGID} ${USER_NAME}
 	log "update permission for all directory and file to ${PUID}:${PGID}"
 	if [ -f "$(which find)" ]; then
@@ -51,11 +51,12 @@ if [ -n ${PUID} ] || [ -n ${PGID} ]; then
 		if [[ ${WORKSPACE_PERMISSION} == "yes" ]]; then
 			find ${USER_HOME_DIR} -print -exec chown -R ${USER_NAME}:${GROUP_NAME} {} \;
 		else
-			find ${USER_HOME_DIR} -not -path "${USER_HOME_DIR}/workspace/*" -print -exec chown -R ${USER_NAME}:${GROUP_NAME} {} \;
+			find ${USER_HOME_DIR} -print -not -path "${USER_HOME_DIR}/workspace/*" -exec chown -R ${USER_NAME}:${GROUP_NAME} {} \;
 		# log "update permission on ${USER_HOME_DIR}/workspace"
 		# chown ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/workspace
 		fi
 	else
+		log "update permission manually"
 		# Set permissions on data mount
 		# do not decend into the workspace
 		# note: i saw this is not working in alpine

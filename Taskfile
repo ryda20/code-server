@@ -122,7 +122,7 @@ _exit_if_file_not_exist() {
 code-server() {
 	docker run -it --rm \
 		--name code-server \
-		-v ~/gitlab:/stduser/workspace \
+		-v ~/gitlab:/workspace \
 		-p 8080:8080 \
 		-e PUID=501 \
 		-e PGID=20 \

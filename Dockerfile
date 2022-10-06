@@ -6,17 +6,15 @@ FROM ryda20/alpine:3.16
 # 	# get defined ARG from base image
 # 	USER_NAME=${USER_NAME:-stduser} \
 # 	GROUP_NAME=${GROUP_NAME:-stduser} \
-# 	USER_APP_DIR=${USER_APP_DIR:-/app}
+# 	USER_APP_DIR=${USER_APP_DIR:-/app} \
+#	USER_WORKSPACE_DIR=${USER_WORKSPACE_DIR:-/workspace}
 
 ENV \
 	# env for this dockerfile
 	VERSION=4.7.1 \
 	PORT=8080 \
 	PROXY_DOMAIN="" \
-	PASSWORD="" \
-	SUDO_PASSWORD="" \
-	# if workspace_permission=yes -> will apply permission on workspace mount
-	WORKSPACE_PERMISSION=""
+	PASSWORD=""
 
 # supply your pub key via `--build-arg ssh_public_key="$(cat ~/.ssh/id_rsa.pub)"` when running `docker build`
 # 

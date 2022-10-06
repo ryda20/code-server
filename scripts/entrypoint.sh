@@ -37,49 +37,32 @@ fi
 #
 
 ## check and change PUID PGID if specify
-log_title "changing UID/GID..."
+log_title "changing UID/GID... to ${PUID}:${PGID}"
+log "user must send correct uid/gid (by PUID/PGID) for the mount workspace,\n because we dont change it permission"
 if [ -n ${PUID} ] || [ -n ${PGID} ]; then
-	log "change gid of group"
+	log "changing uid/gid for user: ${USER_NAME}, group: ${GROUP_NAME}"
 	groupmod -og ${PGID} ${GROUP_NAME}
-	log "change uid and user group to new group id"
 	usermod -ou ${PUID} -g ${PGID} ${USER_NAME}
-	log "update permission for all directory and file to ${PUID}:${PGID}"
-	if [ -f "$(which find)" ]; then
-		# find / -uid 800 -exec chown -v -h 900 '{}' \; && \
-		# find / -gid 700 -exec chgrp -v 600 '{}' \;
-		log "update permission by find"
-		if [[ ${WORKSPACE_PERMISSION} == "yes" ]]; then
-			find ${USER_HOME_DIR} -print -exec chown -R ${USER_NAME}:${GROUP_NAME} {} \;
-		else
-			find ${USER_HOME_DIR} -print -not -path "${USER_HOME_DIR}/workspace/*" -exec chown -R ${USER_NAME}:${GROUP_NAME} {} \;
-		# log "update permission on ${USER_HOME_DIR}/workspace"
-		# chown ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/workspace
-		fi
-	else
-		log "update permission manually"
-		# Set permissions on data mount
-		# do not decend into the workspace
-		# note: i saw this is not working in alpine
-		#chown -R abc:abc "$(ls /config -I workspace)"
-		if [[ ${WORKSPACE_PERMISSION} == "yes" ]]; then
-			dirs="$(ls ${USER_HOME_DIR})"
-		else
-			dirs="$(ls ${USER_HOME_DIR} -I workspace)"
-		fi
-		for dir in $dirs; do
-			log "update permission on: ${USER_HOME_DIR}/$dir"
-			chown -R ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/$dir
-		done
-		log "update permission on ${USER_HOME_DIR}/workspace"
-		chown ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/workspace
-	fi
+	#
+	log "update [recursive] permission on ${USER_HOME_DIR}"
+	chown -R ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}
+	#
+	log "update [recursive] permission on ${USER_APP_DIR}"
+	chown -R ${USER_NAME}:${GROUP_NAME} ${USER_APP_DIR}
+	#
+	log "update permission on ${USER_WORKSPACE_DIR} only"
+	chown ${USER_NAME}:${GROUP_NAME} ${USER_WORKSPACE_DIR}
 fi
 
-log_title "disable another shells..."
-# delete all line except /bin/bash
-# sed -i '/^.*bash$/!d' /etc/shells
-sed -i '/^\/bin\/bash$/!d' /etc/shells
-log "allowed shell: $(cat /etc/shells)"
+# log_title "disable another shells..."
+# # delete all line except /bin/bash
+# # sed -i '/^.*bash$/!d' /etc/shells
+# sed -i '/^\/bin\/bash$/!d' /etc/shells
+# log "allowed shell: $(cat /etc/shells)"
+
+log_title "default zsh shell go ${USER_NAME}"
+sed -i 's/stduser:\/bin\/bash$/stduser:\/bin\/zsh/' /etc/passwd
+
 log_title "setup for auto change to ${USER_NAME} when start bash shell"
 
 # change user on every run bash
@@ -134,7 +117,7 @@ exec /app/code-server/bin/code-server \
 			--disable-telemetry \
 			--auth "${AUTH}" \
 			"${PROXY_DOMAIN_ARG}" \
-			"${DEFAULT_WORKSPACE:-${USER_HOME_DIR}/workspace}"
+			"${DEFAULT_WORKSPACE:-${USER_WORKSPACE_DIR}}"
 '
 
 # bash startup file /etc/profile and load all file with .sh in /etc/profile.d/

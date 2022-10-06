@@ -3,7 +3,7 @@
 	<Name>ryda20_code-server</Name>
 	<Repository>ryda20/code-server:lasted</Repository>
 	<Registry>https://hub.docker.com/r/ryda20/code-server</Registry>
-	<Network>bridge</Network>
+	<Network>nginxproxymanager</Network>
 	<MyIP/>
 	<Shell>bash</Shell>
 	<Privileged>false</Privileged>
@@ -11,20 +11,22 @@
 	<Project>https://github.com/ryda20/code-server</Project>
 	<Overview>this docker image contain (vs) code server, base on alpine linux&#xD;
 &#xD;
-internal port: 8080&#xD;
 	</Overview>
-	<Category>Productivity: Tools:</Category>
-	<WebUI>8080</WebUI>
+	<Category>Cloud: Productivity: Tools:</Category>
+	<WebUI>http://[IP]:[PORT:8443]</WebUI>
 	<TemplateURL/>
-	<Icon/>
+	<Icon>https://github.com/ryda20/code-server/blob/master/code-server-logo.png?raw=true</Icon>
 	<ExtraParams/>
 	<PostArgs/>
 	<CPUset/>
-	<DateInstalled>1665048346</DateInstalled>
+	<DateInstalled>1665049239</DateInstalled>
 	<DonateText/>
 	<DonateLink/>
 	<Requires/>
+	<Config Name="WebPort" Target="8080" Default="8080" Mode="tcp" Description="" Type="Port" Display="always" Required="true" Mask="false">8888</Config>
+	<Config Name="PASSWORD" Target="PASSWORD" Default="changeme" Mode="" Description="Password to access code server.&#13;&#10;" Type="Variable" Display="always" Required="true" Mask="false"/>
+	<Config Name="PROXY_DOMAIN" Target="PROXY_DOMAIN" Default="yourdomain.com" Mode="" Description="" Type="Variable" Display="always" Required="false" Mask="false"/>
 	<Config Name="Workspace" Target="/stduser/workspace" Default="/stduser/workspace" Mode="rw" Description="" Type="Path" Display="always" Required="false" Mask="false">/mnt/user/devProjects/</Config>
-	<Config Name="PUID" Target="PUID" Default="99" Mode="" Description="nobody id" Type="Variable" Display="always" Required="false" Mask="false">99</Config>
-	<Config Name="PGID" Target="PGID" Default="100" Mode="" Description="nobody group" Type="Variable" Display="always" Required="false" Mask="false">100</Config>
+	<Config Name="PUID" Target="PUID" Default="99" Mode="" Description="nobody id" Type="Variable" Display="always-hide" Required="false" Mask="false">99</Config>
+	<Config Name="PGID" Target="PGID" Default="100" Mode="" Description="nobody group" Type="Variable" Display="always-hide" Required="false" Mask="false">100</Config>
 </Container>

@@ -7,10 +7,10 @@ set -e
 # so, we can do anything when in root user
 # like: change UID,GID in case bind mount volume have owner id different from default user in container
 #
-log () {
+log() {
 	echo -e "[entrypoint.sh] $@"
 }
-log_title () {
+log_title() {
 	echo ""
 	echo "=============================================="
 	log "$@"
@@ -20,20 +20,12 @@ log_title () {
 
 log_title "whoami: $(whoami), $(id)\nPUID:PGID = ${PUID}:${PGID}"
 
-log_title "setup for auto change to ${USER_NAME} when start bash shell"
-# change user on every run bash
-# to prevent run in root user, apply for rootless mode (don't use USER directive in dockerfile)
-# put this file to /etc/profile.d/any_name.sh, remember chown to root and chmod to 400 or 600
-# echo "exec su stduser" >> /etc/profile.d/switch_to_stduser.sh
-# echo "exec su ${USER_NAME}" >> /root/.bashrc # or
-echo "exec su ${USER_NAME}" >> /etc/profile.d/start.sh
-
-if [ -f "/sbin/openrc" ] ; then
+if [ -f "/sbin/openrc" ]; then
 	log_title "starting openrc"
 	/sbin/openrc
 fi
 
-if [ -f "/etc/init.d/sshd" ] ; then
+if [ -f "/etc/init.d/sshd" ]; then
 	log_title "starting sshd"
 	/etc/init.d/sshd start
 fi
@@ -44,12 +36,47 @@ fi
 ### exec will replace running process (by root above) with the new one (by stdUser below)
 #
 
+## check and change PUID PGID if specify
+log_title "changing UID/GID..."
+if [ -n ${PUID} ] || [ -n ${PGID} ]; then
+	# change gid of group
+	groupmod -og ${PGID} ${GROUP_NAME}
+	# change uid and user group to new group id
+	usermod -ou ${PUID} -g ${PGID} ${USER_NAME}
+	log "update permission for all directory and file"
+	if [ -f "$(which find)" ]; then
+		find ${USER_HOME_DIR} -not -path ${USER_HOME_DIR}/workspace -exec chown -R ${USER_NAME}:${GROUP_NAME} {} \;
+		chown ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/workspace
+	else
+		# Set permissions on data mount
+		# do not decend into the workspace
+		# note: i saw this is not working in alpine
+		#chown -R abc:abc "$(ls /config -I workspace)"
+		dirs="$(ls ${USER_HOME_DIR} -I workspace)"
+		for dir in $dirs; do
+			log "value: $dir"
+			chown -R ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/$dir
+		done
+		chown ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/workspace
+	fi
+fi
+
+log_title "disable another shells..."
+# delete all line except /bin/bash
+# sed -i '/^.*bash$/!d' /etc/shells
+sed -i '/^\/bin\/bash$/!d' /etc/shells
+log "allowed shell: $(cat /etc/shells)"
+log_title "setup for auto change to ${USER_NAME} when start bash shell"
+
+# change user on every run bash
+# to prevent run in root user, apply for rootless mode (don't use USER directive in dockerfile)
+# put this file to /etc/profile.d/any_name.sh, remember chown to root and chmod to 400 or 600
+# echo "exec su stduser" >> /etc/profile.d/switch_to_stduser.sh
+echo "exec su ${USER_NAME}" >>/root/.bashrc # or
+# echo "exec su ${USER_NAME}" >> /etc/profile.d/start.sh
+
 log_title "changing 'root' user to '${USER_NAME}'..."
-# echo "$(which su) - $(ls -lash $(which su))"
-# chmod 4755 $(which su)
-# exec su "stdUser" "$0" -- "$@"
-# -p -m do not set new $HOME, $SHELL, $USER, $LOGNAME
-# exec su -p -m "stdUser" -c "/stdUser_startUp.sh"
+chmod 4755 $(which su)
 exec su ${USER_NAME} -c '
 log () {
 	echo -e "[entrypoint.sh] $@"

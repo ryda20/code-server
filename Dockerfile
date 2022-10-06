@@ -35,8 +35,7 @@ RUN \
 	# touch softlevel because system was initialized without openrc
 	touch /run/openrc/softlevel ; \
 	fi #ENDRUN
-
-
+#
 RUN \
 	echo "###===> Install dependencies" && \
 	apk --no-cache --update add \
@@ -112,38 +111,38 @@ RUN \
 	SSHD_INSTALLED=1 ; \
 	fi #ENDRUN
 
-RUN \
-	# check if use set sudo password
-	if [ -n "${SUDO_PASSWORD}" ] || [ -n "${SUDO_PASSWORD_HASH}" ]; then \
-	echo "setting up sudo access" ; \
-	if ! grep -q '${USER_NAME}' /etc/sudoers; then \
-	echo "adding ${USER_NAME} to sudoers" ; \
-	echo "${USER_NAME} ALL=(ALL:ALL) ALL" >> /etc/sudoers ; \
-	fi && \
-	if [ -n "${SUDO_PASSWORD_HASH}" ]; then \
-	echo "setting sudo password using sudo password hash" ; \
-	sed -i "s|^${USER_NAME}:\!:|${USER_NAME}:${SUDO_PASSWORD_HASH}:|" /etc/shadow ; \
-	else \
-	echo "setting sudo password using SUDO_PASSWORD env var" ; \
-	echo -e "${SUDO_PASSWORD}\n${SUDO_PASSWORD}" | passwd ${USER_NAME} ; \
-	fi ; \
-	else \
-	echo "allow ${USER_NAME} can change his UID/GID only" ; \
-	echo -e '${USER_NAME} ALL = (root:root) NOPASSWD: \
-	/bin/cat,  \
-	/usr/sbin/groupmod -og $EGID ${USER_NAME}, \
-	!/usr/sbin/groupmod -g 0 ${USER_NAME}, \
-	!/usr/sbin/groupmod -og 0 ${USER_NAME}, \
-	/usr/sbin/usermod -ou $EUID -g $EGID ${USER_NAME}, \
-	!/usr/sbin/usermod -u 0 -g 0 ${USER_NAME}, \
-	!/usr/sbin/usermod -ou 0 -g 0 ${USER_NAME}' \
-	>> /etc/sudoers ; \
-	echo "${USER_NAME} ALL = (root:root) NOPASSWD: /bin/sed -i /etc/passwd -r 's/1000:1000/$PUID:$PGID/g'" >> /etc/sudoers ; \
-	# marlena ALL = NOPASSWD: /bin/systemctl restart nginx.service
-	# /bin/cat
-	# /usr/sbin/groupmod
-	# /usr/sbin/usermod
-	fi #ENDRUN
+# RUN \
+# 	# check if use set sudo password
+# 	if [ -n "${SUDO_PASSWORD}" ] || [ -n "${SUDO_PASSWORD_HASH}" ]; then \
+# 	echo "setting up sudo access" ; \
+# 	if ! grep -q '${USER_NAME}' /etc/sudoers; then \
+# 	echo "adding ${USER_NAME} to sudoers" ; \
+# 	echo "${USER_NAME} ALL=(ALL:ALL) ALL" >> /etc/sudoers ; \
+# 	fi && \
+# 	if [ -n "${SUDO_PASSWORD_HASH}" ]; then \
+# 	echo "setting sudo password using sudo password hash" ; \
+# 	sed -i "s|^${USER_NAME}:\!:|${USER_NAME}:${SUDO_PASSWORD_HASH}:|" /etc/shadow ; \
+# 	else \
+# 	echo "setting sudo password using SUDO_PASSWORD env var" ; \
+# 	echo -e "${SUDO_PASSWORD}\n${SUDO_PASSWORD}" | passwd ${USER_NAME} ; \
+# 	fi ; \
+# 	else \
+# 	echo "allow ${USER_NAME} can change his UID/GID only" ; \
+# 	# echo -e '${USER_NAME} ALL = (root:root) NOPASSWD: \
+# 	# /bin/cat,  \
+# 	# /usr/sbin/groupmod -og $EGID ${USER_NAME}, \
+# 	# /usr/sbin/groupmod -g 0 ${USER_NAME}, \
+# 	# /usr/sbin/groupmod -og 0 ${USER_NAME}, \
+# 	# /usr/sbin/usermod -ou $EUID -g $EGID ${USER_NAME}, \
+# 	# /usr/sbin/usermod -u 0 -g 0 ${USER_NAME}, \
+# 	# /usr/sbin/usermod -ou 0 -g 0 ${USER_NAME}' \
+# 	# >> /etc/sudoers ; \
+# 	# echo "${USER_NAME} ALL = (root:root) NOPASSWD: /bin/sed -i /etc/passwd -r 's/1000:1000/$PUID:$PGID/g'" >> /etc/sudoers ; \
+# 	# marlena ALL = NOPASSWD: /bin/systemctl restart nginx.service
+# 	# /bin/cat
+# 	# /usr/sbin/groupmod
+# 	# /usr/sbin/usermod
+# 	fi #ENDRUN
 
 RUN \
 	### End of RUN -> cleanup

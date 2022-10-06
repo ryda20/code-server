@@ -1,21 +1,16 @@
 #!/bin/bash
-# PATH=./node_modules/.bin:$PATH
-
-# load log file
-source ./task_utils/log
-source ./task_utils/sed
-
-# vars
+TF_DIR=${TF_DIR:-~/.Taskfile} && source ${TF_DIR}/Taskfile.template # MUST START OF FILE # dont change line below, get TF_DIR from ENV or using default value
+##regison USER ============================================================================================================
 REPOS=ryda20
 NAME=code-server
 VER=lasted
 TAG_NAME=${REPOS}/${NAME}:${VER}
-TAG_NAME_S6=$TAG_NAME.s6
-TAG_NAME_ROOTLESS=$TAG_NAME.rootless
+TAG_NAME_S6=${TAG_NAME}.s6
+TAG_NAME_ROOTLESS=${TAG_NAME}.rootless
 
 DOCKERFILE=Dockerfile
 
-function build {
+build() {
 	# all params: ${@}
 	# para 1: ${1}
 	# para 2: ${2}
@@ -44,7 +39,6 @@ function build {
 		_build_help
 	fi
 }
-
 _build_dev() {
 	# $1: tag
 	# $2: docker file name
@@ -52,7 +46,7 @@ _build_dev() {
 	tag=${1:-}
 	dockerfile=${2:-}
 	work_dir=${3:-.}
-	_log "tag: $tag, dockerfile: $dockerfile, work_dir: $work_dir"
+	tf_log "tag: $tag, dockerfile: $dockerfile, work_dir: $work_dir"
 	docker build \
 		-t $tag \
 		-f $dockerfile \
@@ -75,31 +69,25 @@ _build_pro() {
 		$work_dir
 	rm $2.p
 }
-_exit_if_file_not_exist() {
-	if [ ! -f $1 ]; then
-		echo "file $1 does not exist"
-		exit
-	fi
-}
-
 _build_help() {
-	_log_title "
-Description:
-	Build docker image with tag '$TAG_NAME'
+	tf_log_title "
+Build:
+	build docker image with tag '$TAG_NAME'
 Params:
 	\$1: build type (dev,pro)
 	\$2: container type (root [default], rootless, s6)
 Note:
-	dev: build using normal Dockerfile (contain multiply of RUN command) -> image size large
-	pro: build using custom Dockerfile (auto gen by this script) -> merge multiply RUN command into one -> image size smaller
+	dev: build using normal Dockerfile (contain multiply of RUN command) 
+		-> image size large
+	pro: build using custom Dockerfile (auto gen by this script) 
+		-> merge multiply RUN command into one -> image size smaller
 	root: run container with default root user
 	rootless: run container with normal user (stduser)
 	s6: run container with s6-overlay (support multi process)
 "
 }
-
 _dockerfile_gen_product() {
-	_log "input dockerfile gen product $1"
+	tf_log "input dockerfile gen product $1"
 	# $1: dockerfile input for generate pro version
 	#
 	# 1. copy to production dockerfile from input
@@ -112,33 +100,62 @@ _dockerfile_gen_product() {
 	# 1. copy original dockerfile to new one
 	cp $1 $out_file
 	# 2. remove all empty line
-	_sed_remove_empty_line $out_file
+	tf_sed_remove_empty_line $out_file
 	# 3. remove all comment lines, line start with space or tab too
-	_sed_remove_comment_line $out_file
+	tf_sed_remove_comment_line $out_file
 	# 4. replace FIRST "RUN" with "FIRST_RUN" - _sed '1,/string/ s/string/replacement/' file
-	_sed_replace_first_occur '^RUN' 'FIRST_RUN' $out_file
+	tf_sed_replace_first_occur '^RUN' 'FIRST_RUN' $out_file
 	# 5. delete all another RUN
-	_sed_remove_all_occur '^RUN' $out_file
+	tf_sed_remove_all_occur '^RUN' $out_file
 	# 6. find #ENDRUN and replace with "&& \"" -> we must escape \& -> &, \\ -> \
-	_sed_replace_all_occur '[.]*#ENDRUN$' ' \&\& \\' $out_file
+	tf_sed_replace_all_occur '[.]*#ENDRUN$' ' \&\& \\' $out_file
 	# 7. replace FIRST_RUN to RUN
-	_sed_replace_first_occur '^FIRST_RUN' 'RUN' $out_file
+	tf_sed_replace_first_occur '^FIRST_RUN' 'RUN' $out_file
+}
+_exit_if_file_not_exist() {
+	if [ ! -f $1 ]; then
+		echo "file $1 does not exist"
+		exit
+	fi
 }
 
-function start {
-	echo "tag name: $TAG_NAME"
-	echo "start task not implemented"
+code-server() {
+	docker run -it --rm \
+		--name code-server \
+		-v ~/gitlab:/stduser/workspace \
+		-p 8080:8080 \
+		-e PUID=501 \
+		-e PGID=20 \
+		${TAG_NAME}
+}
+code-server-rl() {
+	docker run -it --rm \
+		--name code-server \
+		-v ~/gitlab:/stduser/workspace \
+		-p 8080:8080 \
+		${TAG_NAME_ROOTLESS}
+}
+code-server-s6() {
+	docker run -it --rm \
+		--name code-server \
+		-v ~/gitlab:/stduser/workspace \
+		-p 8080:8080 \
+		${TAG_NAME_S6}
 }
 
-_help() {
-	echo "$0 <task> <args>"
-	echo "Tasks:"
-	# hidden the function start with underline _, as it is internal functions
-	compgen -A function | grep -v '^_' | cat -n
+exec() {
+	docker exec -it code-server /bin/sh
+}
+save() {
+	saveName=${1:-${TAG_NAME}}
+	tagName=${2:-${TAG_NAME}}
+	docker save -o ${saveName}.tar ${tagName}
 }
 
-TIMEFORMAT="Task completed in %3lR"
-time ${@:-_help}
+push() {
+	tagName=${1:-${TAG_NAME}}
+	docker push ${tagName}
+}
+##endregion ============================================================================================================
 
-# Allows to call a function based on arguments passed to the script
-#$*
+TIMEFORMAT="Task completed in %3lR" && time __fn_list_check ${@} # MUST END OF FILE # default action when call this file without parameter

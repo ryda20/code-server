@@ -49,8 +49,8 @@ if [ -n ${PUID} ] || [ -n ${PGID} ]; then
 	log "update [recursive] permission on ${USER_APP_DIR}"
 	chown -R ${USER_NAME}:${GROUP_NAME} ${USER_APP_DIR}
 	#
-	log "update permission on ${USER_WORKSPACE_DIR} only"
-	chown ${USER_NAME}:${GROUP_NAME} ${USER_WORKSPACE_DIR}
+	log "update permission on ${WORKSPACE_DIR} only"
+	chown ${USER_NAME}:${GROUP_NAME} ${WORKSPACE_DIR}
 fi
 
 # # log_title "setup for auto change to ${USER_NAME} when start bash shell"
@@ -93,20 +93,19 @@ else
 	PROXY_DOMAIN_ARG="--proxy-domain=${PROXY_DOMAIN}"
 fi
 
-mkdir -p ${USER_HOME_DIR}/extensions
-mkdir -p ${USER_HOME_DIR}/data
-mkdir -p ${USER_HOME_DIR}/workspace
+mkdir -p ${CONFIG_DIR}/extensions
+mkdir -p ${CONFIG_DIR}/data
 mkdir -p ${USER_HOME_DIR}/.ssh
 
 
 exec /app/code-server/bin/code-server \
 			--bind-addr 0.0.0.0:8080 \
-			--user-data-dir ${USER_HOME_DIR}/data \
-			--extensions-dir ${USER_HOME_DIR}/extensions \
+			--user-data-dir ${CONFIG_DIR}/data \
+			--extensions-dir ${CONFIG_DIR}/extensions \
 			--disable-telemetry \
 			--auth "${AUTH}" \
 			"${PROXY_DOMAIN_ARG}" \
-			"${DEFAULT_WORKSPACE:-${USER_WORKSPACE_DIR}}"
+			"${DEFAULT_WORKSPACE:-${WORKSPACE_DIR}"
 '
 
 # bash startup file /etc/profile and load all file with .sh in /etc/profile.d/

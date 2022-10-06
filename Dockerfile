@@ -14,7 +14,10 @@ ENV \
 	VERSION=4.7.1 \
 	PORT=8080 \
 	PROXY_DOMAIN="" \
-	PASSWORD=""
+	PASSWORD="" \
+	WORKSPACE_DIR=${USER_WORKSPACE_DIR:-/workspace} \
+	# config dir content data, extension for vscode
+	CONFIG_DIR=${USER_HOME_DIR:-stduser}/config
 
 # supply your pub key via `--build-arg ssh_public_key="$(cat ~/.ssh/id_rsa.pub)"` when running `docker build`
 # 

@@ -14,7 +14,9 @@ ENV \
 	PORT=8080 \
 	PROXY_DOMAIN="" \
 	PASSWORD="" \
-	SUDO_PASSWORD=""
+	SUDO_PASSWORD="" \
+	# if workspace_permission=yes -> will apply permission on workspace mount
+	WORKSPACE_PERMISSION=""
 
 # supply your pub key via `--build-arg ssh_public_key="$(cat ~/.ssh/id_rsa.pub)"` when running `docker build`
 # 

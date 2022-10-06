@@ -43,20 +43,33 @@ if [ -n ${PUID} ] || [ -n ${PGID} ]; then
 	groupmod -og ${PGID} ${GROUP_NAME}
 	# change uid and user group to new group id
 	usermod -ou ${PUID} -g ${PGID} ${USER_NAME}
-	log "update permission for all directory and file"
+	log "update permission for all directory and file to ${PUID}:${PGID}"
 	if [ -f "$(which find)" ]; then
-		find ${USER_HOME_DIR} -not -path ${USER_HOME_DIR}/workspace -exec chown -R ${USER_NAME}:${GROUP_NAME} {} \;
-		chown ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/workspace
+		# find / -uid 800 -exec chown -v -h 900 '{}' \; && \
+		# find / -gid 700 -exec chgrp -v 600 '{}' \;
+		log "update permission by find"
+		if [[ ${WORKSPACE_PERMISSION} == "yes" ]]; then
+			find ${USER_HOME_DIR} -print -exec chown -R ${USER_NAME}:${GROUP_NAME} {} \;
+		else
+			find ${USER_HOME_DIR} -not -path "${USER_HOME_DIR}/workspace/*" -print -exec chown -R ${USER_NAME}:${GROUP_NAME} {} \;
+		# log "update permission on ${USER_HOME_DIR}/workspace"
+		# chown ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/workspace
+		fi
 	else
 		# Set permissions on data mount
 		# do not decend into the workspace
 		# note: i saw this is not working in alpine
 		#chown -R abc:abc "$(ls /config -I workspace)"
-		dirs="$(ls ${USER_HOME_DIR} -I workspace)"
+		if [[ ${WORKSPACE_PERMISSION} == "yes" ]]; then
+			dirs="$(ls ${USER_HOME_DIR})"
+		else
+			dirs="$(ls ${USER_HOME_DIR} -I workspace)"
+		fi
 		for dir in $dirs; do
-			log "value: $dir"
+			log "update permission on: ${USER_HOME_DIR}/$dir"
 			chown -R ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/$dir
 		done
+		log "update permission on ${USER_HOME_DIR}/workspace"
 		chown ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/workspace
 	fi
 fi

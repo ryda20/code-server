@@ -126,6 +126,8 @@ code-server() {
 		-p 8080:8080 \
 		-e PUID=501 \
 		-e PGID=20 \
+		-e PASSWORD="changeme" \
+		-e PROXY_DOMAIN="" \
 		${TAG_NAME}
 }
 code-server-rl() {

@@ -9,6 +9,8 @@ TAG_NAME_S6=${TAG_NAME}.s6
 TAG_NAME_ROOTLESS=${TAG_NAME}.rootless
 
 DOCKERFILE=Dockerfile
+# var seperator
+VS="***"
 
 # docker() {
 # 	echo "run docker command"
@@ -37,21 +39,37 @@ build() {
 	# for caching when docker build -> build fast but large image size
 	# pro: using custom Dockerfile (auto create base on Dockerfile) with
 	# merge all RUN command to one -> small image size
-	if [ "$container_type" == "root" ] && [ "$buildtype" == "dev" ]; then
-		_build_dev "$TAG_NAME" "$DOCKERFILE"
-	elif [ "$container_type" == "root" ] && [ "$buildtype" == "pro" ]; then
-		_build_pro "$TAG_NAME" "$DOCKERFILE"
-	elif [ "$container_type" == "rootless" ] && [ "$buildtype" == "dev" ]; then
-		_build_dev "$TAG_NAME_ROOTLESS" "$DOCKERFILE.rootless"
-	elif [ "$container_type" == "rootless" ] && [ "$buildtype" == "pro" ]; then
-		_build_pro "$TAG_NAME_ROOTLESS" "$DOCKERFILE.rootless"
-	elif [ "$container_type" == "s6" ] && [ "$buildtype" == "dev" ]; then
-		_build_dev "$TAG_NAME_S6" "$DOCKERFILE.s6"
-	elif [ "$container_type" == "s6" ] && [ "$buildtype" == "pro" ]; then
-		_build_pro "$TAG_NAME_S6" "$DOCKERFILE.s6"
-	else
-		_build_help
-	fi
+	# if [ "$container_type" == "root" ] && [ "$buildtype" == "dev" ]; then
+	# 	_build_dev "$TAG_NAME" "$DOCKERFILE"
+	# elif [ "$container_type" == "root" ] && [ "$buildtype" == "pro" ]; then
+	# 	_build_pro "$TAG_NAME" "$DOCKERFILE"
+	# elif [ "$container_type" == "rootless" ] && [ "$buildtype" == "dev" ]; then
+	# 	_build_dev "$TAG_NAME_ROOTLESS" "$DOCKERFILE.rootless"
+	# elif [ "$container_type" == "rootless" ] && [ "$buildtype" == "pro" ]; then
+	# 	_build_pro "$TAG_NAME_ROOTLESS" "$DOCKERFILE.rootless"
+	# elif [ "$container_type" == "s6" ] && [ "$buildtype" == "dev" ]; then
+	# 	_build_dev "$TAG_NAME_S6" "$DOCKERFILE.s6"
+	# elif [ "$container_type" == "s6" ] && [ "$buildtype" == "pro" ]; then
+	# 	_build_pro "$TAG_NAME_S6" "$DOCKERFILE.s6"
+	# else
+	# 	_build_help
+	# fi
+	case "${container_type}${VS}${buildtype}" in
+	"root${VS}dev")
+		_build_dev "$TAG_NAME" "$DOCKERFILE" ;;
+	"root${VS}pro")
+		_build_pro "$TAG_NAME" "$DOCKERFILE" ;;
+	"rootless${VS}dev")
+		_build_dev "$TAG_NAME_ROOTLESS" "$DOCKERFILE.rootless" ;;
+	"rootless${VS}pro")
+		_build_pro "$TAG_NAME_ROOTLESS" "$DOCKERFILE.rootless" ;;
+	"s6${VS}dev")
+		_build_dev "$TAG_NAME_S6" "$DOCKERFILE.s6" ;;
+	"s6${VS}pro")
+		_build_pro "$TAG_NAME_S6" "$DOCKERFILE.s6" ;;
+	*)
+		_build_help ;;
+	esac
 }
 _build_dev() {
 	# $1: tag
@@ -137,6 +155,7 @@ code-server() {
 	docker run -it --rm \
 		--name code-server \
 		-v ~/gitlab:/workspace \
+		-v ~/config:/config \
 		-v ~/gitlab/code-server/product4.7.1.json:/app/code-server/lib/vscode/product.json \
 		-p 8080:8080 \
 		-e PUID=501 \

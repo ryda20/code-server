@@ -8,16 +8,17 @@ FROM ryda20/alpine:3.16
 # 	GROUP_NAME=${GROUP_NAME:-stduser} \
 # 	USER_APP_DIR=${USER_APP_DIR:-/app} \
 #	USER_WORKSPACE_DIR=${USER_WORKSPACE_DIR:-/workspace}
+#	USER_CONFIG_DIR=${USER_CONFIG_DIR:-/config}
 
 ENV \
 	# env for this dockerfile
 	VERSION=4.7.1 \
 	PORT=8080 \
 	PROXY_DOMAIN="" \
-	PASSWORD="" \
+	PASSWORD="${PASSWORD:-changeme}" \
 	WORKSPACE_DIR=${USER_WORKSPACE_DIR:-/workspace} \
 	# config dir content data, extension for vscode
-	CONFIG_DIR=${USER_HOME_DIR:-stduser}/config
+	CONFIG_DIR=${USER_CONFIG_DIR:-/config}
 
 # supply your pub key via `--build-arg ssh_public_key="$(cat ~/.ssh/id_rsa.pub)"` when running `docker build`
 # 
@@ -32,7 +33,7 @@ ARG \
 # EXCEPT FOR THE LAST RUN, DONT WRITE #ENDRUN
 RUN \
 	if [[ "${install_openrc}" == "yes" ]] ; then \
-	echo "### Install OPENRC ###" ; \
+	echo "*** Install OPENRC ***" ; \
 	apk add --update --no-cache openrc ; \
 	mkdir -p /run/openrc ; \
 	# touch softlevel because system was initialized without openrc
@@ -40,10 +41,8 @@ RUN \
 	fi #ENDRUN
 #
 RUN \
-	echo "###===> Install dependencies" && \
+	echo "*** Install dependencies ***" && \
 	apk --no-cache --update add \
-	# already add from base image
-	# bash \
 	zsh \
 	curl \
 	libc6-compat gcompat \
@@ -61,7 +60,7 @@ RUN \
 
 
 RUN \	
-	echo "###===> Install code-server ${CODE_RELEASE}" && \
+	echo "*** Install code-server ${CODE_RELEASE} ***" && \
 	if [ -z ${CODE_RELEASE+x} ]; then \
 	CODE_RELEASE=$(curl -sX GET https://api.github.com/repos/coder/code-server/releases/latest | awk '/tag_name/{print $4;exit}' FS='[""]' | sed 's|^v||'); \
 	fi && \
@@ -91,14 +90,14 @@ RUN \
 
 
 RUN \
-	### Install zsh theme to $HOME directory
+	echo "*** Install zsh theme to $HOME directory ***" && \
 	sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" && \
 	rm -rf ~/.oh-my-zsh/.git* && \
 	rm -rf ~/.oh-my-zsh/*.md && \
 	cp ~/.oh-my-zsh/themes/robbyrussell.zsh-theme /tmp/ && \
 	rm ~/.oh-my-zsh/themes/* && \
 	mv /tmp/robbyrussell.zsh-theme ~/.oh-my-zsh/themes/ && \
-	# change permisson, USER_NAME, GROUP_NAME was defined in base image
+	echo "*** change permisson, USER_NAME, GROUP_NAME was defined in base image ***" &&\
 	chown -R ${USER_NAME}:${GROUP_NAME} ~/.oh-my-zsh ~/.zshrc && \
 	chown ${USER_NAME}:${GROUP_NAME} ~/.zshrc #ENDRUN
 
@@ -107,11 +106,6 @@ RUN \
 	cp -r /root/.oh-my-zsh /root/.zshrc ${USER_HOME_DIR}/ && \
 	chown -R ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/.oh-my-zsh && \
 	chown ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/.zshrc #ENDRUN
-
-
-
-
-
 
 RUN \
 	if [ "${install_sshd}" == "yes" ] ; then \
@@ -181,8 +175,13 @@ RUN \
 
 EXPOSE 8080
 
-COPY scripts/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT [ "/entrypoint.sh" ]
+COPY \
+	# copy files:
+	scripts/entrypoint.sh \
+	scripts/code-server_start.sh \
+	# to directory:
+	/scripts/
+RUN chmod +x /scripts/*.sh
+ENTRYPOINT [ "/scripts/entrypoint.sh" ]
 
 # CMD ["/usr/sbin/sshd","-D"]

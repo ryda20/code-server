@@ -36,22 +36,38 @@ fi
 ### exec will replace running process (by root above) with the new one (by stdUser below)
 
 ## check and change PUID PGID if specify
-log_title "changing UID/GID... to ${PUID}:${PGID}"
-log "user must send correct uid/gid (by PUID/PGID) for the mount workspace,\n because we dont change it permission"
-if [ -n ${PUID} ] || [ -n ${PGID} ]; then
-	log "changing uid/gid for user: ${USER_NAME}, group: ${GROUP_NAME}"
+_gid=$(id -g ${GROUP_NAME})
+_uid=$(id -u ${USER_NAME})
+log_title "Checking for UID/GID.
+	User must send correct uid/gid (by PUID/PGID env) for the mount workspace,
+	because we dont change it permission
+"
+if [ -n ${PGID} ] && [ ${_gid} -ne ${PGID} ]; then
+	log "changing GID from ${_gid} to ${PGID}"
 	groupmod -og ${PGID} ${GROUP_NAME}
-	usermod -ou ${PUID} -g ${PGID} ${USER_NAME}
-	#
-	log "update [recursive] permission on ${USER_HOME_DIR}"
-	chown -R ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}
-	#
-	log "update [recursive] permission on ${USER_APP_DIR}"
-	chown -R ${USER_NAME}:${GROUP_NAME} ${USER_APP_DIR}
-	#
-	log "update permission on ${WORKSPACE_DIR} only"
-	chown ${USER_NAME}:${GROUP_NAME} ${WORKSPACE_DIR}
 fi
+
+if [ -n ${PUID} ] && [ ${_uid} -ne ${PUID} ] ; then
+	log "changing UID from ${_uid} to ${PUID}"
+	usermod -ou ${PUID} ${USER_NAME}
+fi
+
+# do not need update chown USER:GROUP again because we already change USER:GROUP id
+# under the hood, linux use uid and gid
+# if [ -n ${PUID} ] || [ -n ${PGID} ] && [ $((id -u ${USER_NAME})) -ne ${PUID} ] && [ $((id -g ${GROUP_NAME})) -ne ${PGID} ]; then
+# 	log "changing uid/gid for user: ${USER_NAME}, group: ${GROUP_NAME}"
+# 	groupmod -og ${PGID} ${GROUP_NAME}
+# 	usermod -ou ${PUID} -g ${PGID} ${USER_NAME}
+# 	#
+# 	log "update [recursive] permission on ${USER_HOME_DIR}"
+# 	chown -R ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}
+# 	#
+# 	log "update [recursive] permission on ${USER_APP_DIR}"
+# 	chown -R ${USER_NAME}:${GROUP_NAME} ${USER_APP_DIR}
+# 	#
+# 	log "update permission on ${WORKSPACE_DIR} only"
+# 	chown ${USER_NAME}:${GROUP_NAME} ${WORKSPACE_DIR}
+# fi
 
 # # log_title "setup for auto change to ${USER_NAME} when start bash shell"
 # # change user on every run bash
@@ -63,50 +79,7 @@ fi
 
 log_title "changing 'root' user to '${USER_NAME}'..."
 chmod 4755 $(which su)
-exec su ${USER_NAME} -c '
-log () {
-	echo -e "[entrypoint.sh] $@"
-}
-log_title () {
-	echo ""
-	echo "=============================================="
-	log "$@"
-	echo "=============================================="
-	echo ""
-}
-
-# check and enable AUTH if have PASSWORD env
-# -n : noneempty string
-# https://acloudguru.com/blog/engineering/conditions-in-bash-scripting-if-statements
-if [ -n "${PASSWORD}" ] || [ -n "${HASHED_PASSWORD}" ]; then
-	AUTH="password"
-	log "starting with password: \$PASSWORD"
-else
-	AUTH="none"
-	log "starting with no password"
-fi
-
-# check and apply domain
-if [ -z ${PROXY_DOMAIN+x} ]; then
-	PROXY_DOMAIN_ARG=""
-else
-	PROXY_DOMAIN_ARG="--proxy-domain=${PROXY_DOMAIN}"
-fi
-
-mkdir -p ${CONFIG_DIR}/extensions
-mkdir -p ${CONFIG_DIR}/data
-mkdir -p ${USER_HOME_DIR}/.ssh
-
-
-exec /app/code-server/bin/code-server \
-			--bind-addr 0.0.0.0:8080 \
-			--user-data-dir ${CONFIG_DIR}/data \
-			--extensions-dir ${CONFIG_DIR}/extensions \
-			--disable-telemetry \
-			--auth "${AUTH}" \
-			"${PROXY_DOMAIN_ARG}" \
-			"${DEFAULT_WORKSPACE:-${WORKSPACE_DIR}}"
-'
+exec su ${USER_NAME} -c /scripts/code-server_start.sh
 
 # bash startup file /etc/profile and load all file with .sh in /etc/profile.d/
 # zsh -> ~/.zshrc

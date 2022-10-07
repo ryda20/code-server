@@ -157,6 +157,7 @@ code-server() {
 		-v ~/gitlab:/workspace \
 		-v ~/config:/config \
 		-v ~/gitlab/code-server/product4.7.1.json:/app/code-server/lib/vscode/product.json \
+		-v ~/gitlab/code-server/tmp/scan_and_run:/config/scan_and_run \
 		-p 8080:8080 \
 		-e PUID=501 \
 		-e PGID=20 \
@@ -180,7 +181,7 @@ code-server-s6() {
 }
 
 exec() {
-	docker exec -it code-server /bin/sh
+	docker exec -it code-server /bin/bash
 }
 save() {
 	saveName=${1:-${TAG_NAME}}

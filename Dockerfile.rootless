@@ -34,7 +34,7 @@ RUN \
 	### fix ld-linux-x86-64.so.2 not found - comment out because already exist after install libc6-compat and gcompat
 	#mkdir /lib64 && 
 	#ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2 && \
-	git
+	git #ENDRUN
 
 RUN \	
 	echo "###===> Install code-server ${CODE_RELEASE}" && \
@@ -63,7 +63,7 @@ RUN \
 	sed -i 's+"$ROOT\/lib\/node"+node+g' ${USER_APP_DIR}/code-server/bin/code-server && \
 	#
 	# Permission after extract
-	chown -R ${USER_NAME}:${GROUP_NAME} ${USER_APP_DIR}
+	chown -R ${USER_NAME}:${GROUP_NAME} ${USER_APP_DIR} #ENDRUN
 
 RUN \
 	### Install zsh theme to $HOME directory
@@ -75,9 +75,22 @@ RUN \
 	mv /tmp/robbyrussell.zsh-theme ~/.oh-my-zsh/themes/ && \
 	# change permisson, USER_NAME, GROUP_NAME was defined in base image
 	chown -R ${USER_NAME}:${GROUP_NAME} ~/.oh-my-zsh ~/.zshrc && \
-	chown ${USER_NAME}:${GROUP_NAME} ~/.zshrc
+	chown ${USER_NAME}:${GROUP_NAME} ~/.zshrc #ENDRUN
 
 
+# HERE IS LAST RUN COMMAND, DONT WRITE ENDRUN
+# change all default shell ash to bash
+RUN \
+	sed 's_\/bin\/ash_\/bin\/bash_g' -i /etc/passwd && \
+	# log_title "default zsh shell go ${USER_NAME}"
+	sed "s/${USER_NAME}:\/bin\/bash$/${USER_NAME}:\/bin\/zsh/" -i /etc/passwd && \
+	# log_title "setup for auto change to ${USER_NAME} when start bash shell"
+	# change user on every run bash
+	# to prevent run in root user, apply for rootless mode (don't use USER directive in dockerfile)
+	# put this file to /etc/profile.d/any_name.sh, remember chown to root and chmod to 400 or 600
+	# echo "exec su ${USER_NAME}" >> /etc/profile.d/start.sh
+	# OR
+	echo "exec su ${USER_NAME}" >> /root/.bashrc #ENDRUN
 
 
 RUN \
@@ -100,18 +113,18 @@ RUN \
 	echo -e '${USER_NAME} ALL = (root:root) NOPASSWD: \
 	/bin/cat,  \
 	/usr/sbin/groupmod -og $EGID ${USER_NAME}, \
-	!/usr/sbin/groupmod -g 0 ${USER_NAME}, \
-	!/usr/sbin/groupmod -og 0 ${USER_NAME}, \
+	/usr/sbin/groupmod -g 0 ${USER_NAME}, \
+	/usr/sbin/groupmod -og 0 ${USER_NAME}, \
 	/usr/sbin/usermod -ou $EUID -g $EGID ${USER_NAME}, \
-	!/usr/sbin/usermod -u 0 -g 0 ${USER_NAME}, \
-	!/usr/sbin/usermod -ou 0 -g 0 ${USER_NAME}' \
+	/usr/sbin/usermod -u 0 -g 0 ${USER_NAME}, \
+	/usr/sbin/usermod -ou 0 -g 0 ${USER_NAME}' \
 	>> /etc/sudoers ; \
 	echo "${USER_NAME} ALL = (root:root) NOPASSWD: /bin/sed -i /etc/passwd -r 's/1000:1000/$PUID:$PGID/g'" >> /etc/sudoers ; \
 	# marlena ALL = NOPASSWD: /bin/systemctl restart nginx.service
 	# /bin/cat
 	# /usr/sbin/groupmod
 	# /usr/sbin/usermod
-	fi
+	fi #ENDRUN
 
 RUN \
 	### End of RUN -> cleanup

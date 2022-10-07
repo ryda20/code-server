@@ -20,6 +20,9 @@ log_title() {
 
 log_title "whoami: $(whoami), $(id)\nPUID:PGID = ${PUID}:${PGID}"
 
+
+
+
 if [ -f "/sbin/openrc" ]; then
 	log_title "starting openrc"
 	/sbin/openrc
@@ -79,14 +82,4 @@ fi
 
 log_title "changing 'root' user to '${USER_NAME}'..."
 chmod 4755 $(which su)
-exec su ${USER_NAME} -c /scripts/code-server_start.sh
-
-# bash startup file /etc/profile and load all file with .sh in /etc/profile.d/
-# zsh -> ~/.zshrc
-# https://blog.opstree.com/2020/02/11/shell-initialization-files/
-# 1. Non-interactive mode:
-# source file in $BASH_ENV
-# 2. Interactive login mode:
-# /etc/profile
-# 3. Interactive non-login mode:
-# /etc/bash.bashrc
+exec su ${USER_NAME} -c /scripts/entrypoint-user.sh

@@ -84,28 +84,27 @@ RUN \
 	fi && \
 	# replace exec path from node to code-server in new path
 	sed -i 's+"$ROOT\/lib\/node"+node+g' ${USER_APP_DIR}/code-server/bin/code-server && \
-	#
 	# Permission after extract
 	chown -R ${USER_NAME}:${GROUP_NAME} ${USER_APP_DIR} #ENDRUN
 
 
-RUN \
-	echo "*** Install zsh theme to $HOME directory ***" && \
-	sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" && \
-	rm -rf ~/.oh-my-zsh/.git* && \
-	rm -rf ~/.oh-my-zsh/*.md && \
-	cp ~/.oh-my-zsh/themes/robbyrussell.zsh-theme /tmp/ && \
-	rm ~/.oh-my-zsh/themes/* && \
-	mv /tmp/robbyrussell.zsh-theme ~/.oh-my-zsh/themes/ && \
-	echo "*** change permisson, USER_NAME, GROUP_NAME was defined in base image ***" &&\
-	chown -R ${USER_NAME}:${GROUP_NAME} ~/.oh-my-zsh ~/.zshrc && \
-	chown ${USER_NAME}:${GROUP_NAME} ~/.zshrc #ENDRUN
+# RUN \
+# 	echo "*** Install zsh theme to $HOME directory ***" && \
+# 	sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" && \
+# 	rm -rf ~/.oh-my-zsh/.git* && \
+# 	rm -rf ~/.oh-my-zsh/*.md && \
+# 	cp ~/.oh-my-zsh/themes/robbyrussell.zsh-theme /tmp/ && \
+# 	rm ~/.oh-my-zsh/themes/* && \
+# 	mv /tmp/robbyrussell.zsh-theme ~/.oh-my-zsh/themes/ && \
+# 	echo "*** change permisson, USER_NAME, GROUP_NAME was defined in base image ***" &&\
+# 	chown -R ${USER_NAME}:${GROUP_NAME} ~/.oh-my-zsh ~/.zshrc && \
+# 	chown ${USER_NAME}:${GROUP_NAME} ~/.zshrc #ENDRUN
 
-RUN \
-	# copy oh-my-zsh from root to user
-	cp -r /root/.oh-my-zsh /root/.zshrc ${USER_HOME_DIR}/ && \
-	chown -R ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/.oh-my-zsh && \
-	chown ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/.zshrc #ENDRUN
+# RUN \
+# 	# copy oh-my-zsh from root to user
+# 	cp -r /root/.oh-my-zsh /root/.zshrc ${USER_HOME_DIR}/ && \
+# 	chown -R ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/.oh-my-zsh && \
+# 	chown ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/.zshrc #ENDRUN
 
 RUN \
 	if [ "${install_sshd}" == "yes" ] ; then \
@@ -152,7 +151,7 @@ RUN \
 # 	# /usr/sbin/usermod
 # 	fi #ENDRUN
 
-# HERE IS LAST RUN COMMAND, DONT WRITE ENDRUN
+
 # change all default shell ash to bash
 RUN \
 	sed 's_\/bin\/ash_\/bin\/bash_g' -i /etc/passwd && \
@@ -170,17 +169,14 @@ RUN \
 	### End of RUN -> cleanup
 	rm -rf /tmp/* && \
 	rm -rf /var/cache/*
-
+# HERE IS LAST RUN COMMAND, DONT WRITE ENDRUN
 
 
 EXPOSE 8080
 
-COPY \
-	# copy files:
-	scripts/entrypoint.sh \
-	scripts/code-server_start.sh \
-	# to directory:
-	/scripts/
+COPY scripts/ /scripts/
+
+
 RUN chmod +x /scripts/*.sh
 ENTRYPOINT [ "/scripts/entrypoint.sh" ]
 

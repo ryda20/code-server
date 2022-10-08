@@ -12,13 +12,18 @@ log_title () {
 	echo ""
 }
 
-# check folder /config/scan_and_run to run specical file name 'run_me_linux_x64.sh'
+# check folder /config/scan_and_run to run specical file name 'run_me.sh'
 log_title "scan and run custom init script from user"
-find /config/scan_and_run -type f -executable -name "run_me_linux_x64.sh" -exec echo "found: {}" \; -exec /bin/bash {} \;
-log "done"
+if [ -d /config/autorunscripts ]; then
+	find /config/autorunscripts -type f -executable -name "run_me.sh" -exec echo "found: {}" \; -exec /bin/bash {} \;
+	log "done"
+else
+	log "autorunscripts not found!"
+fi
 
 # source /scripts/paths_add.sh
 # add_paths_to_dot_profile
+
 
 # check and enable AUTH if have PASSWORD env
 # -n : noneempty string

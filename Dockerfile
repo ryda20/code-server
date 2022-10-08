@@ -51,8 +51,6 @@ RUN \
 	# openssh-client \
 	# already add from base image
 	# shadow \
-	#
-	#
 	### fix ld-linux-x86-64.so.2 not found - comment out because already exist after install libc6-compat and gcompat
 	#mkdir /lib64 && 
 	#ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2 && \
@@ -110,8 +108,8 @@ RUN \
 	if [ "${install_sshd}" == "yes" ] ; then \
 	echo "### Install OpenSSH ###" ; \
 	apk add --no-cache openssh ; \
-	mkdir -p /root/.ssh ; \
-	chmod 0700 /root/.ssh ; \
+	# mkdir -p /root/.ssh ; \
+	# chmod 0700 /root/.ssh ; \
 	ssh-keygen -A ; \
 	echo -e "PasswordAuthentication no" >> /etc/ssh/sshd_config ; \
 	echo "${ssh_public_key}" > /root/.ssh/authorized_keys ; \
@@ -157,6 +155,8 @@ RUN \
 	sed 's_\/bin\/ash_\/bin\/bash_g' -i /etc/passwd && \
 	# log_title "default zsh shell go ${USER_NAME}"
 	sed "s/${USER_NAME}:\/bin\/bash$/${USER_NAME}:\/bin\/zsh/" -i /etc/passwd && \
+	# OR below for ${USER_NAME} only
+	# usermod --shell /bin/zsh ${USER_NAME} \
 	# log_title "setup for auto change to ${USER_NAME} when start bash shell"
 	# change user on every run bash
 	# to prevent run in root user, apply for rootless mode (don't use USER directive in dockerfile)
@@ -175,9 +175,7 @@ RUN \
 EXPOSE 8080
 
 COPY scripts/ /scripts/
-
-
 RUN chmod +x /scripts/*.sh
-ENTRYPOINT [ "/scripts/entrypoint.sh" ]
 
-# CMD ["/usr/sbin/sshd","-D"]
+
+ENTRYPOINT [ "/scripts/entrypoint.sh" ]

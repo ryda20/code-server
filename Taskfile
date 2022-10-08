@@ -157,7 +157,7 @@ code-server() {
 		-v ~/gitlab:/workspace \
 		-v ~/config:/config \
 		-v ~/gitlab/code-server/product4.7.1.json:/app/code-server/lib/vscode/product.json \
-		-v ~/gitlab/code-server/tmp/scan_and_run:/config/scan_and_run \
+		-v ~/gitlab/code-server/tmp/autorunscripts:/config/autorunscripts \
 		-p 8080:8080 \
 		-e PUID=501 \
 		-e PGID=20 \

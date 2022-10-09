@@ -8,3 +8,5 @@ Github Repos:
 Dev Requirements:
 
 	https://github.com/ryda20/Taskfile
+
+Note: now just focus on Dockerfile, rootless and s6 are not doing yet!

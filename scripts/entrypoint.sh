@@ -7,8 +7,11 @@ set -e
 # so, we can do anything when in root user
 # like: change UID,GID in case bind mount volume have owner id different from default user in container
 #
+basename=$(basename ${0})
+dirname=$(dirname ${0})
+
 log() {
-	echo -e "[entrypoint.sh] $@"
+	echo -e "[${basename}] $@"
 }
 log_title() {
 	echo ""
@@ -19,9 +22,6 @@ log_title() {
 }
 
 log_title "whoami: $(whoami), $(id)\nPUID:PGID = ${PUID}:${PGID}"
-
-
-
 
 if [ -f "/sbin/openrc" ]; then
 	log_title "starting openrc"
@@ -39,47 +39,52 @@ fi
 ### exec will replace running process (by root above) with the new one (by stdUser below)
 
 ## check and change PUID PGID if specify
-_gid=$(id -g ${GROUP_NAME})
-_uid=$(id -u ${USER_NAME})
+_gid=$(id -g ${MY_GROUP})
+_uid=$(id -u ${MY_USER})
 log_title "Checking for UID/GID.
-	User must send correct uid/gid (by PUID/PGID env) for the mount workspace,
-	because we dont change it permission
+User must send correct uid/gid (by PUID/PGID env) for the mount workspace,
+because we dont change it permission
 "
-if [ -n ${PGID} ] && [ ${_gid} -ne ${PGID} ]; then
+if [ -n ${PGID} ] && [ ${_gid} != ${PGID} ]; then
 	log "changing GID from ${_gid} to ${PGID}"
-	groupmod -og ${PGID} ${GROUP_NAME}
+	groupmod -og ${PGID} ${MY_GROUP}
 fi
-
-if [ -n ${PUID} ] && [ ${_uid} -ne ${PUID} ] ; then
+#
+if [ -n ${PUID} ] && [ ${_uid} != ${PUID} ] ; then
 	log "changing UID from ${_uid} to ${PUID}"
-	usermod -ou ${PUID} ${USER_NAME}
+	usermod -ou ${PUID} ${MY_USER}
+fi
+# we don't re-apply permission for HOME dir because usermod already do it for us
+# comments out if APPS, WORKS, CONF inside HOME directory
+# - h option will works on symbolic links instead of their referenced files
+# if [ ${_gid} -ne ${PGID} ] ; then
+# 	echo "re-apply gid permission for ${MY_APPS} and ${MY_CONF}"
+# 	find ${MY_APPS} -group ${_gid} -exec chgrp -h ${MY_GROUP} {} \;
+# 	find ${MY_CONF} -group ${_gid} -exec chgrp -h ${MY_GROUP} {} \;	
+# fi
+# i think change for user was enough to use
+if [ ${_uid} != ${PUID} ] ; then
+	echo "re-apply uid permission for ${MY_APPS} and ${MY_CONF}"
+	find ${MY_APPS} -user ${_uid} -exec chown -h ${MY_USER} {} \;
+	find ${MY_CONF} -user ${_uid} -exec chown -h ${MY_USER} {} \;
+	# echo "re-apply uid:gid for ${MY_WORKS}"
+	chown ${MY_USER}:${MY_GROUP} ${MY_APPS} ${MY_CONF} ${MY_WORKS}
 fi
 
-# do not need update chown USER:GROUP again because we already change USER:GROUP id
-# under the hood, linux use uid and gid
-# if [ -n ${PUID} ] || [ -n ${PGID} ] && [ $((id -u ${USER_NAME})) -ne ${PUID} ] && [ $((id -g ${GROUP_NAME})) -ne ${PGID} ]; then
-# 	log "changing uid/gid for user: ${USER_NAME}, group: ${GROUP_NAME}"
-# 	groupmod -og ${PGID} ${GROUP_NAME}
-# 	usermod -ou ${PUID} -g ${PGID} ${USER_NAME}
-# 	#
-# 	log "update [recursive] permission on ${USER_HOME_DIR}"
-# 	chown -R ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}
-# 	#
-# 	log "update [recursive] permission on ${USER_APP_DIR}"
-# 	chown -R ${USER_NAME}:${GROUP_NAME} ${USER_APP_DIR}
-# 	#
-# 	log "update permission on ${WORKSPACE_DIR} only"
-# 	chown ${USER_NAME}:${GROUP_NAME} ${WORKSPACE_DIR}
-# fi
 
-# # log_title "setup for auto change to ${USER_NAME} when start bash shell"
+log_title "setup for auto change to ${MY_USER} when start bash shell"
 # # change user on every run bash
-# # to prevent run in root user, apply for rootless mode (don't use USER directive in dockerfile)
+# # to prevent run in root user, apply for rootless mode (don't use MY_USER directive in dockerfile)
 # # put this file to /etc/profile.d/any_name.sh, remember chown to root and chmod to 400 or 600
-# # echo "exec su ${USER_NAME}" >> /etc/profile.d/start.sh
+# # echo "exec su ${MY_USER}" >> /etc/profile.d/start.sh
 # # OR
-# echo "exec su ${USER_NAME}" >>/root/.bashrc #ENDRUN
+echo "exec su ${MY_USER}" >>/root/.bashrc
 
-log_title "changing 'root' user to '${USER_NAME}'..."
-chmod 4755 $(which su)
-exec su ${USER_NAME} -c /scripts/entrypoint-user.sh
+if [ -n "${SUDO_PASSWORD}" ]; then
+	echo "set password for root user"
+	echo -e "${SUDO_PASSWORD}\n${SUDO_PASSWORD}" | passwd root
+fi
+
+log_title "changing 'root' user to '${MY_USER}'..."
+# chmod 4755 $(which su)
+exec su ${MY_USER} -c /scripts/entrypoint-user.sh

@@ -1,8 +1,11 @@
 #!/bin/bash
 
 # code below running as ${USER_NAME} - stduser
-log () {
-	echo -e "[entrypoint.sh] $@"
+basename=$(basename ${0})
+dirname=$(dirname ${0})
+
+log() {
+	echo -e "[${basename}] $@"
 }
 log_title () {
 	echo ""
@@ -12,17 +15,15 @@ log_title () {
 	echo ""
 }
 
-# check folder /config/scan_and_run to run specical file name 'run_me.sh'
+# check folder /autorunscripts to run specical file name 'run_me.sh'
 log_title "scan and run custom init script from user"
-if [ -d /config/autorunscripts ]; then
-	find /config/autorunscripts -type f -executable -name "run_me.sh" -exec echo "found: {}" \; -exec /bin/bash {} \;
-	log "done"
-else
-	log "autorunscripts not found!"
-fi
+source /scripts/autorunscripts.sh
+auto_run_scripts "/autorunscripts"
 
-# source /scripts/paths_add.sh
-# add_paths_to_dot_profile
+log_title "auto link dotfiles to user home directory"
+source /scripts/dotfiles.sh
+auto_link_dotfiles "/dotfiles"
+echo "=============================================="
 
 
 # check and enable AUTH if have PASSWORD env
@@ -43,16 +44,14 @@ else
 	PROXY_DOMAIN_ARG="--proxy-domain=${PROXY_DOMAIN}"
 fi
 
-mkdir -p ${CONFIG_DIR}/extensions
-mkdir -p ${CONFIG_DIR}/data
-mkdir -p ${USER_HOME_DIR}/.ssh
+mkdir -p ${MY_CONF}/extensions
+mkdir -p ${MY_CONF}/data
 
-
-exec /app/code-server/bin/code-server \
+exec ${MY_APPS}/code-server/bin/code-server \
 			--bind-addr 0.0.0.0:8080 \
-			--user-data-dir ${CONFIG_DIR}/data \
-			--extensions-dir ${CONFIG_DIR}/extensions \
+			--user-data-dir ${MY_CONF}/data \
+			--extensions-dir ${MY_CONF}/extensions \
 			--disable-telemetry \
 			--auth "${AUTH}" \
 			"${PROXY_DOMAIN_ARG}" \
-			"${DEFAULT_WORKSPACE:-${WORKSPACE_DIR}}"
+			"${DEFAULTMY_WORKSPACE:-${MY_WORKS}}"

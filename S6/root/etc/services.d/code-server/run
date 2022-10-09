@@ -17,9 +17,9 @@ exec \
     s6-setuidgid ${USER_NAME} \
         /app/code-server/bin/code-server \
             --bind-addr 0.0.0.0:${PORT} \
-            --user-data-dir ${USER_HOME_DIR}/data \
-            --extensions-dir ${USER_HOME_DIR}/extensions \
+            --user-data-dir ${USERMY_HOME_DIR}/data \
+            --extensions-dir ${USERMY_HOME_DIR}/extensions \
             --disable-telemetry \
             --auth "${AUTH}" \
             "${PROXY_DOMAIN_ARG}" \
-            "${DEFAULT_WORKSPACE:-${USER_HOME_DIR}/workspace}"
+            "${DEFAULTMY_WORKSPACE:-${USERMY_HOME_DIR}/workspace}"

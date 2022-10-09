@@ -65,8 +65,8 @@ if [ -f "/usr/bin/find" ]; then
     #     xargs --null -r --max-args=1 --max-procs=$((CORES*2*8)) \
     #     chown -R abc:abc
 
-    find /config -not -path ${USER_HOME_DIR}/workspace -exec chown -R ${USER_NAME}:${GROUP_NAME} {} \;
-    chown ${USER_NAME}:${GROUP_NAME} ${USER_HOME_DIR}/workspace
+    find /config -not -path ${USERMY_HOME_DIR}/workspace -exec chown -R ${USER_NAME}:${GROUP_NAME} {} \;
+    chown ${USER_NAME}:${GROUP_NAME} ${USERMY_HOME_DIR}/workspace
 else
     # Set permissions on data mount
     # do not decend into the workspace

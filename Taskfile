@@ -154,10 +154,10 @@ _exit_if_file_not_exist() {
 code-server() {
 	docker run -it --rm \
 		--name code-server \
-		-v ~/gitlab:/workspace \
-		-v ~/config:/config \
-		-v ~/gitlab/code-server/product4.7.1.json:/app/code-server/lib/vscode/product.json \
-		-v ~/gitlab/code-server/tmp/autorunscripts:/config/autorunscripts \
+		-v ~/gitlab:/stduser/works \
+		-v ~/gitlab/code-server/product4.7.1.json:/stduser/apps/code-server/lib/vscode/product.json:ro \
+		-v ~/gitlab/code-server/tmp/devConfig/autorunscripts:/autorunscripts:ro \
+		-v ~/gitlab/code-server/tmp/devConfig/dotfiles:/dotfiles:ro \
 		-p 8080:8080 \
 		-e PUID=501 \
 		-e PGID=20 \
@@ -168,14 +168,14 @@ code-server() {
 code-server-rl() {
 	docker run -it --rm \
 		--name code-server \
-		-v ~/gitlab:/stduser/workspace \
+		-v ~/gitlab:/stduser/works \
 		-p 8080:8080 \
 		${TAG_NAME_ROOTLESS}
 }
 code-server-s6() {
 	docker run -it --rm \
 		--name code-server \
-		-v ~/gitlab:/stduser/workspace \
+		-v ~/gitlab:/stduser/works \
 		-p 8080:8080 \
 		${TAG_NAME_S6}
 }

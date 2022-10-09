@@ -98,17 +98,17 @@ else
 fi
 
 
-mkdir -p ${USER_HOME_DIR}/extensions
-mkdir -p ${USER_HOME_DIR}/data
-mkdir -p ${USER_HOME_DIR}/workspace
-mkdir -p ${USER_HOME_DIR}/.ssh
+mkdir -p ${USERMY_HOME_DIR}/extensions
+mkdir -p ${USERMY_HOME_DIR}/data
+mkdir -p ${USERMY_HOME_DIR}/workspace
+mkdir -p ${USERMY_HOME_DIR}/.ssh
 
 
 exec /app/code-server/bin/code-server \
 			--bind-addr 0.0.0.0:8080 \
-			--user-data-dir ${USER_HOME_DIR}/data \
-			--extensions-dir ${USER_HOME_DIR}/extensions \
+			--user-data-dir ${USERMY_HOME_DIR}/data \
+			--extensions-dir ${USERMY_HOME_DIR}/extensions \
 			--disable-telemetry \
 			--auth "${AUTH}" \
 			"${PROXY_DOMAIN_ARG}" \
-			"${DEFAULT_WORKSPACE:-${USER_HOME_DIR}/workspace}"
+			"${DEFAULTMY_WORKSPACE:-${USERMY_HOME_DIR}/workspace}"

@@ -16,7 +16,7 @@ log_title () {
 }
 
 # check folder /autorunscripts to run specical file name 'run_me.sh'
-log_title "scan and run custom init script from user"
+log_title "autorunscripts from user"
 source /scripts/autorunscripts.sh
 auto_run_scripts "/autorunscripts"
 

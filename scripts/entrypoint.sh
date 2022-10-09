@@ -80,10 +80,7 @@ log_title "setup for auto change to ${MY_USER} when start bash shell"
 # # OR
 echo "exec su ${MY_USER}" >>/root/.bashrc
 
-if [ -n "${SUDO_PASSWORD}" ]; then
-	echo "set password for root user"
-	echo -e "${SUDO_PASSWORD}\n${SUDO_PASSWORD}" | passwd root
-fi
+
 
 log_title "changing 'root' user to '${MY_USER}'..."
 # chmod 4755 $(which su)

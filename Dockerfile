@@ -12,8 +12,8 @@ ENV \
 # supply your pub key via `--build-arg ssh_public_key="$(cat ~/.ssh/id_rsa.pub)"` when running `docker build`
 # 
 ARG \
-	install_openrc="" \
-	install_sshd="" \
+	install_openrc="yes" \
+	install_sshd="yes" \
 	ssh_public_key=""
 
 RUN \
@@ -32,19 +32,70 @@ RUN \
 		usermod -ou ${PUID} ${MY_USER}; \
 	fi #ENDRUN
 
+RUN \
+	if [ -n "${SUDO_PASSWORD}" ]; then \
+		echo "set password for root user"; \
+		echo -e "${SUDO_PASSWORD}\n${SUDO_PASSWORD}" | passwd root ; \
+	fi #ENDRUN
+
+# RUN \
+# 	# check if use set sudo password
+# 	if [ -n "${SUDO_PASSWORD}" ] || [ -n "${SUDO_PASSWORD_HASH}" ]; then \
+# 	echo "setting up sudo access" ; \
+# 	if ! grep -q '${MY_USER}' /etc/sudoers; then \
+# 	echo "adding ${MY_USER} to sudoers" ; \
+# 	echo "${MY_USER} ALL=(ALL:ALL) ALL" >> /etc/sudoers ; \
+# 	fi && \
+# 	if [ -n "${SUDO_PASSWORD_HASH}" ]; then \
+# 	echo "setting sudo password using sudo password hash" ; \
+# 	sed -i "s|^${MY_USER}:\!:|${MY_USER}:${SUDO_PASSWORD_HASH}:|" /etc/shadow ; \
+# 	else \
+# 	echo "setting sudo password using SUDO_PASSWORD env var" ; \
+# 	echo -e "${SUDO_PASSWORD}\n${SUDO_PASSWORD}" | passwd ${MY_USER} ; \
+# 	fi ; \
+# 	else \
+# 	echo "allow ${MY_USER} can change his UID/GID only" ; \
+# 	# echo -e '${MY_USER} ALL = (root:root) NOPASSWD: \
+# 	# /bin/cat,  \
+# 	# /usr/sbin/groupmod -og $EGID ${MY_USER}, \
+# 	# /usr/sbin/groupmod -g 0 ${MY_USER}, \
+# 	# /usr/sbin/groupmod -og 0 ${MY_USER}, \
+# 	# /usr/sbin/usermod -ou $EUID -g $EGID ${MY_USER}, \
+# 	# /usr/sbin/usermod -u 0 -g 0 ${MY_USER}, \
+# 	# /usr/sbin/usermod -ou 0 -g 0 ${MY_USER}' \
+# 	# >> /etc/sudoers ; \
+# 	# echo "${MY_USER} ALL = (root:root) NOPASSWD: /bin/sed -i /etc/passwd -r 's/1000:1000/$PUID:$PGID/g'" >> /etc/sudoers ; \
+# 	# marlena ALL = NOPASSWD: /bin/systemctl restart nginx.service
+# 	# /bin/cat
+# 	# /usr/sbin/groupmod
+# 	# /usr/sbin/usermod
+# 	fi #ENDRUN
+
+
 # RULE TO WRITE RUN COMMAND FOR AUTO GENERATE PRODUCT DOCKERFILE
 # AFTER RUN, USING \ TO WRITE CODE IN NEW LINE
 # AND THE LAST LINE OF CODE, COMMAND WITH '#ENDRUN'
 # EXCEPT FOR THE LAST RUN, DONT WRITE #ENDRUN
 RUN \
 	if [[ "${install_openrc}" == "yes" ]] ; then \
-	echo "*** Install OPENRC ***" ; \
-	apk add --update --no-cache openrc ; \
-	mkdir -p /run/openrc ; \
-	# touch softlevel because system was initialized without openrc
-	touch /run/openrc/softlevel ; \
+		echo "*** Install OPENRC ***" ; \
+		apk add --update --no-cache openrc ; \
+		mkdir -p /run/openrc ; \
+		# touch softlevel because system was initialized without openrc
+		touch /run/openrc/softlevel ; \
 	fi #ENDRUN
-#
+
+RUN \
+	if [ "${install_sshd}" == "yes" ] ; then \
+	echo "*** Install OpenSSH ***" ; \
+	apk add --no-cache openssh ; \
+	# mkdir -p /root/.ssh ; \
+	# chmod 0700 /root/.ssh ; \
+	ssh-keygen -A ; \
+	echo -e "PasswordAuthentication no" >> /etc/ssh/sshd_config ; \
+	# echo "${ssh_public_key}" > /root/.ssh/authorized_keys ; \
+	fi #ENDRUN
+
 RUN \
 	echo "*** Install dependencies ***" && \
 	apk --no-cache --update add \
@@ -107,14 +158,22 @@ RUN \
 	# maybe change in diffence version, so, for easy, we search it but in small place for faster
 	f="style-src 'self' 'unsafe-inline'" && \
 	r="style-src 'self' 'unsafe-inline' fonts.googleapis.com" && \
+	f2="font-src 'self' blob:" && \
+	r2="font-src 'self' blob: fonts.gstatic.com" && \
 	# grep -rl "${f}" ${d} | xargs sed -i "s/${f}/${r}/g" && \
 	# group of action () and -a -> run action 2 if action 1 ok
-	find ${d} -regex ".*\.\(js\|ts\)" \( -exec grep -rl "${f}" {} \; -a -exec sed -i "s/${f}/${r}/g" {} \; \) -exec echo {} \; && \
-	#
-	f="font-src 'self' blob:" && \
-	r="font-src 'self' blob: fonts.gstatic.com" && \
-	# grep -rl "${f}" ${d} | xargs sed -i "s/${f}/${r}/g" && \
-	find ${d} -regex ".*\.\(js\|ts\)" -exec grep -rl "${f}" {} \; -a -exec sed -i "s/${f}/${r}/g" {} \; && \
+	find ${d} \
+		# only do on *.js file. .*\(js\|html\|css\|ts\)
+		-regex ".*\.\(js\)" \
+		# group 1: if exec 1 ok -> do exec 2 else stop when exec 1 not ok
+		\( -exec grep -rl "${f}" {} \; -a -exec sed -i -e "s/${f}/${r}/g" {} \; \) \
+		# group 2
+		\(  -exec grep -rl "${f2}" {} \; -a -exec sed -i -e "s/${f2}/${r2}/g" {} \; \) && \
+	# #
+	# f="font-src 'self' blob:" && \
+	# r="font-src 'self' blob: fonts.gstatic.com" && \
+	# # grep -rl "${f}" ${d} | xargs sed -i "s/${f}/${r}/g" && \
+	# find ${d} -regex ".*\.\(js\|ts\)" -exec grep -rl "${f}" {} \; -a -exec sed -i "s/${f}/${r}/g" {} \; && \
 	#
 	# Permission after extract
 	chown -R ${MY_USER}:${MY_GROUP} ${MY_APPS}/code-server #ENDRUN
@@ -138,49 +197,9 @@ RUN \
 # 	chown -R ${MY_USER}:${MY_GROUP} ${MY_USERMY_HOME_DIR}/.oh-my-zsh && \
 # 	chown ${MY_USER}:${MY_GROUP} ${MY_USERMY_HOME_DIR}/.zshrc #ENDRUN
 
-RUN \
-	if [ "${install_sshd}" == "yes" ] ; then \
-	echo "### Install OpenSSH ###" ; \
-	apk add --no-cache openssh ; \
-	# mkdir -p /root/.ssh ; \
-	# chmod 0700 /root/.ssh ; \
-	ssh-keygen -A ; \
-	echo -e "PasswordAuthentication no" >> /etc/ssh/sshd_config ; \
-	echo "${ssh_public_key}" > /root/.ssh/authorized_keys ; \
-	fi #ENDRUN
 
-# RUN \
-# 	# check if use set sudo password
-# 	if [ -n "${SUDO_PASSWORD}" ] || [ -n "${SUDO_PASSWORD_HASH}" ]; then \
-# 	echo "setting up sudo access" ; \
-# 	if ! grep -q '${MY_USER}' /etc/sudoers; then \
-# 	echo "adding ${MY_USER} to sudoers" ; \
-# 	echo "${MY_USER} ALL=(ALL:ALL) ALL" >> /etc/sudoers ; \
-# 	fi && \
-# 	if [ -n "${SUDO_PASSWORD_HASH}" ]; then \
-# 	echo "setting sudo password using sudo password hash" ; \
-# 	sed -i "s|^${MY_USER}:\!:|${MY_USER}:${SUDO_PASSWORD_HASH}:|" /etc/shadow ; \
-# 	else \
-# 	echo "setting sudo password using SUDO_PASSWORD env var" ; \
-# 	echo -e "${SUDO_PASSWORD}\n${SUDO_PASSWORD}" | passwd ${MY_USER} ; \
-# 	fi ; \
-# 	else \
-# 	echo "allow ${MY_USER} can change his UID/GID only" ; \
-# 	# echo -e '${MY_USER} ALL = (root:root) NOPASSWD: \
-# 	# /bin/cat,  \
-# 	# /usr/sbin/groupmod -og $EGID ${MY_USER}, \
-# 	# /usr/sbin/groupmod -g 0 ${MY_USER}, \
-# 	# /usr/sbin/groupmod -og 0 ${MY_USER}, \
-# 	# /usr/sbin/usermod -ou $EUID -g $EGID ${MY_USER}, \
-# 	# /usr/sbin/usermod -u 0 -g 0 ${MY_USER}, \
-# 	# /usr/sbin/usermod -ou 0 -g 0 ${MY_USER}' \
-# 	# >> /etc/sudoers ; \
-# 	# echo "${MY_USER} ALL = (root:root) NOPASSWD: /bin/sed -i /etc/passwd -r 's/1000:1000/$PUID:$PGID/g'" >> /etc/sudoers ; \
-# 	# marlena ALL = NOPASSWD: /bin/systemctl restart nginx.service
-# 	# /bin/cat
-# 	# /usr/sbin/groupmod
-# 	# /usr/sbin/usermod
-# 	fi #ENDRUN
+
+
 
 
 # change all default shell ash to bash

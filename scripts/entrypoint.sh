@@ -42,8 +42,7 @@ fi
 _gid=$(id -g ${MY_GROUP})
 _uid=$(id -u ${MY_USER})
 log_title "Checking for UID/GID.
-User must send correct uid/gid (by PUID/PGID env) for the mount workspace,
-because we dont change it permission
+User must send correct uid/gid (by PUID/PGID env) for the mount ${MY_WORKS}, because we dont change it permission
 "
 if [ -n ${PGID} ] && [ ${_gid} != ${PGID} ]; then
 	log "changing GID from ${_gid} to ${PGID}"

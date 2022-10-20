@@ -77,14 +77,20 @@ log_title "setup for auto change to ${MY_USER} when start bash shell"
 # # put this file to /etc/profile.d/any_name.sh, remember chown to root and chmod to 400 or 600
 # # echo "exec su ${MY_USER}" >> /etc/profile.d/start.sh
 # # OR
-echo "exec su ${MY_USER}" >>/root/.bashrc
+# echo "exec su ${MY_USER}" >>/root/.bashrc
+
+log_title "auto link dotfiles to user home directory"
+source /scripts/dotfiles.sh
+# link for stduser
+auto_link_dotfiles "/dotfiles" ${MY_HOME}
+# link for root
+auto_link_dotfiles "/dotfiles"
+echo "=============================================="
 
 # check folder /autorunscripts to run specical file name 'run_me.sh'
 log_title "find and run scripts from autorunscripts"
 source /scripts/autorunscripts.sh
 auto_run_scripts "/autorunscripts"
-
-
 
 log_title "changing 'root' user to '${MY_USER}'..."
 # chmod 4755 $(which su)

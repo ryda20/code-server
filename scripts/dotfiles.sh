@@ -2,11 +2,12 @@
 
 auto_link_dotfiles() {
 	dir=${1:-/dotfiles}
+	home=${2:-~}
 	if [ -d ${dir} ] ; then
 		# loop for hidden file .xxxx, not ..xxxx, * does not match with dot (.)
 		for f in ${dir}/.[^.]* ; do
 			fileName=$(basename ${f})
-			linkedFile=~/${fileName}  # file in home directory of current user
+			linkedFile=${home}/${fileName}  # file in home directory of current user
 			# check if file exist in $HOME directory (~)
 			if [ -f  linkedFile ] ; then
 				# check if same with my file

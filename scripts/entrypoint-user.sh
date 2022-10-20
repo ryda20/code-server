@@ -15,17 +15,6 @@ log_title () {
 	echo ""
 }
 
-# # check folder /autorunscripts to run specical file name 'run_me.sh'
-# log_title "autorunscripts from user"
-# source /scripts/autorunscripts.sh
-# auto_run_scripts "/autorunscripts"
-
-log_title "auto link dotfiles to user home directory"
-source /scripts/dotfiles.sh
-auto_link_dotfiles "/dotfiles"
-echo "=============================================="
-
-
 # check and enable AUTH if have PASSWORD env
 # -n : noneempty string
 # https://acloudguru.com/blog/engineering/conditions-in-bash-scripting-if-statements

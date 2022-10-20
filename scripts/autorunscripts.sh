@@ -8,3 +8,7 @@ auto_run_scripts() {
 		log "autorunscripts not found!"
 	fi
 }
+
+# allow to call functiion directly like:
+# bash autorunscripts.sh auto_run_scripts para1
+"$@"

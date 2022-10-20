@@ -41,7 +41,7 @@ source /scripts/dotfiles.sh
 # link for stduser
 auto_link_dotfiles "/dotfiles" ${MY_HOME}
 # link for root
-auto_link_dotfiles "/dotfiles"
+# auto_link_dotfiles "/dotfiles"
 echo "=============================================="
 
 # check folder /autorunscripts to run specical file name 'run_me.sh'

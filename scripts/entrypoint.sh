@@ -79,6 +79,11 @@ log_title "setup for auto change to ${MY_USER} when start bash shell"
 # # OR
 echo "exec su ${MY_USER}" >>/root/.bashrc
 
+# check folder /autorunscripts to run specical file name 'run_me.sh'
+log_title "find and run scripts from autorunscripts"
+source /scripts/autorunscripts.sh
+auto_run_scripts "/autorunscripts"
+
 
 
 log_title "changing 'root' user to '${MY_USER}'..."

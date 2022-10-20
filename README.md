@@ -18,8 +18,8 @@ Note: now just focus on Dockerfile, rootless and s6 are not doing yet!
 	- `8080`: code server port in container
 	- `/workspace`: workspace folder
 	- `/config`: code server config folder (data, extension)
-	- `/dotfiles`: you can mount your dotfiles here, it will auto link all dot files to home dir /stduser (ln -s)
-	- `/autorunscripts`: auto run your script at startup here, the entry point will look at this directory and find all files with name run_me.sh and run it (set +x for it first)
+	- `/dotfiles`: you can mount your dotfiles here, it will auto link all dot files to home dir /stduser (ln -s). Run under stduser
+	- `/autorunscripts`: auto run your script at startup here, the entry point will look at this directory and find all files with name run_me.sh and run it (set +x for it first). Run under root user
 	- `PASSWORD`: env to set code server password 
 	- `PROXY_DOMAIN`: env to set domain
 

@@ -15,10 +15,10 @@ log_title () {
 	echo ""
 }
 
-# check folder /autorunscripts to run specical file name 'run_me.sh'
-log_title "autorunscripts from user"
-source /scripts/autorunscripts.sh
-auto_run_scripts "/autorunscripts"
+# # check folder /autorunscripts to run specical file name 'run_me.sh'
+# log_title "autorunscripts from user"
+# source /scripts/autorunscripts.sh
+# auto_run_scripts "/autorunscripts"
 
 log_title "auto link dotfiles to user home directory"
 source /scripts/dotfiles.sh

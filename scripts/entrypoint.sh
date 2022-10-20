@@ -36,6 +36,20 @@ fi
 #note: below is working but when exec or attach from docker, user still as root
 # this mean, below only for this script session
 
+log_title "auto link dotfiles to user home directory"
+source /scripts/dotfiles.sh
+# link for stduser
+auto_link_dotfiles "/dotfiles" ${MY_HOME}
+# link for root
+auto_link_dotfiles "/dotfiles"
+echo "=============================================="
+
+# check folder /autorunscripts to run specical file name 'run_me.sh'
+log_title "find and run scripts from autorunscripts"
+source /scripts/autorunscripts.sh
+auto_run_scripts "/autorunscripts"
+
+
 ### exec will replace running process (by root above) with the new one (by stdUser below)
 
 ## check and change PUID PGID if specify
@@ -79,18 +93,7 @@ log_title "setup for auto change to ${MY_USER} when start bash shell"
 # # OR
 # echo "exec su ${MY_USER}" >>/root/.bashrc
 
-log_title "auto link dotfiles to user home directory"
-source /scripts/dotfiles.sh
-# link for stduser
-auto_link_dotfiles "/dotfiles" ${MY_HOME}
-# link for root
-auto_link_dotfiles "/dotfiles"
-echo "=============================================="
 
-# check folder /autorunscripts to run specical file name 'run_me.sh'
-log_title "find and run scripts from autorunscripts"
-source /scripts/autorunscripts.sh
-auto_run_scripts "/autorunscripts"
 
 log_title "changing 'root' user to '${MY_USER}'..."
 # chmod 4755 $(which su)

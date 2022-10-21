@@ -12,19 +12,21 @@ set -e
 #
 
 log_title "whoami: $(whoami), $(id)\nPUID:PGID = ${PUID}:${PGID}"
+log_end
 
-
+log_title "check and starting openrc"
 if [ -f "/sbin/openrc" ]; then
-	log_title "starting openrc"
 	/sbin/openrc
-	log_end
 fi
+log_end
 
+
+log_title "check and starting sshd"
 if [ -f "/etc/init.d/sshd" ]; then
-	log_title "starting sshd"
 	/etc/init.d/sshd start
-	log_end
 fi
+log_end
+
 
 #note: below is working but when exec or attach from docker, user still as root
 # this mean, below only for this script session
@@ -46,9 +48,7 @@ log_end
 ## check and change PUID PGID if specify
 _gid=$(id -g ${MY_GROUP})
 _uid=$(id -u ${MY_USER})
-log_title "Checking for UID/GID.
-User must send correct uid/gid (by PUID/PGID env) for the mount ${MY_WORKS}, because we dont change it permission
-"
+log_title "Checking for UID/GID.User must send correct uid/gid (by PUID/PGID env) for the mount ${MY_WORKS}, because we dont change it permission"
 if [ -n ${PGID} ] && [ ${_gid} != ${PGID} ]; then
 	log "changing GID from ${_gid} to ${PGID}"
 	groupmod -og ${PGID} ${MY_GROUP}

@@ -76,8 +76,8 @@ log_title() {
 
 	# force to use color for sure it display correctly because above code seems not working for all system
 	echo -e "${random_color}#${equal_line}${NC}"
-	echo -e "${Red}# script: ${dirname}/${basename}${NC}"
-	echo -e "${Red}# $@ ${NC}"
+	echo -e "${random_color}#${Red} script: ${dirname}/${basename}${NC}"
+	echo -e "${random_color}#${Red} $@ ${NC}"
 }
 
 log_end() {

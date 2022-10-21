@@ -1,4 +1,6 @@
 #!/bin/bash
+source /scripts/base.sh
+
 set -e
 
 #
@@ -8,25 +10,6 @@ set -e
 # so, we can do anything when in root user
 # like: change UID,GID in case bind mount volume have owner id different from default user in container
 #
-basename=$(basename ${0})
-dirname=$(dirname ${0})
-
-equal_line="============================================================================================"
-log() {
-	echo -e "# $@"
-}
-
-log_title() {
-	echo ""
-	echo "#${equal_line}"
-	log  "script: ${0}"
-	log  "$@"
-}
-
-log_end() {
-	echo "#${equal_line}"
-}
-
 
 log_title "whoami: $(whoami), $(id)\nPUID:PGID = ${PUID}:${PGID}"
 
@@ -34,11 +17,13 @@ log_title "whoami: $(whoami), $(id)\nPUID:PGID = ${PUID}:${PGID}"
 if [ -f "/sbin/openrc" ]; then
 	log_title "starting openrc"
 	/sbin/openrc
+	log_end
 fi
 
 if [ -f "/etc/init.d/sshd" ]; then
 	log_title "starting sshd"
 	/etc/init.d/sshd start
+	log_end
 fi
 
 #note: below is working but when exec or attach from docker, user still as root
@@ -48,13 +33,13 @@ log_title "auto link dotfiles to user home directory"
 source /scripts/dotfiles.sh
 # link for stduser
 auto_link_dotfiles "/dotfiles" ${MY_HOME}
-echo "=============================================="
+log_end
 
 # check folder /autorunscripts to run specical file name 'run_me.sh'
 log_title "find and run scripts from autorunscripts"
 source /scripts/autorunscripts.sh
 auto_run_scripts "/autorunscripts"
-
+log_end
 
 ### exec will replace running process (by root above) with the new one (by stdUser below)
 
@@ -83,13 +68,13 @@ fi
 # fi
 # i think change for user was enough to use
 if [ ${_uid} != ${PUID} ] ; then
-	echo "re-apply uid permission for ${MY_APPS} and ${MY_CONF}"
+	log "re-apply uid permission for ${MY_APPS} and ${MY_CONF}"
 	find ${MY_APPS} -user ${_uid} -exec chown -h ${MY_USER} {} \;
 	find ${MY_CONF} -user ${_uid} -exec chown -h ${MY_USER} {} \;
 	# echo "re-apply uid:gid for ${MY_WORKS}"
 	chown ${MY_USER}:${MY_GROUP} ${MY_APPS} ${MY_CONF} ${MY_WORKS}
 fi
-
+log_end
 
 log_title "setup for auto change to ${MY_USER} when start bash shell"
 # # change user on every run bash
@@ -98,7 +83,7 @@ log_title "setup for auto change to ${MY_USER} when start bash shell"
 # # echo "exec su ${MY_USER}" >> /etc/profile.d/start.sh
 # # OR
 # echo "exec su ${MY_USER}" >>/root/.bashrc
-
+log_end
 
 
 log_title "changing 'root' user to '${MY_USER}'..."

@@ -9,7 +9,7 @@ auto_link_dotfiles() {
 			fileName=$(basename ${f})
 			linkedName=${home}/${fileName}  # file in home directory of current user
 			#
-			echo -e "-> linking ${f} -> ${linkedName}"
+			log "-> linking ${f} -> ${linkedName}"
 			# f: remove symbolic if it exist and a file
 			# n: remove symbolic if it exist and a directory 
 			ln -sfn ${f} ${linkedName}
@@ -28,16 +28,16 @@ auto_link_dotfiles2() {
 			log "working on ${f} -> ${linkedName}"
 			# check if file exist in $HOME directory (~)
 			if [ -f "${linkedName}" ]; then
-				echo -e "\t-> file already existed!"
+				log "\t-> file already existed!"
 				if [ ${f} -ef ${linkedName}  ]; then
-					echo -e "\t\t-> same, no link again: ${f}"
+					log "\t\t-> same, no link again: ${f}"
 				else
 					rm ${linkedName}
 					ln -s ${f} ${linkedName}
-					echo -e "\t\t-> difference, removed, relinked ${linkedName} -> ${f}"
+					log "\t\t-> difference, removed, relinked ${linkedName} -> ${f}"
 				fi
 			elif [ -d "${linkedName}" ]; then
-				echo -e "\t-> directory already existed!"
+				log "\t-> directory already existed!"
 				# DIFF=$(diff a b) 
 				# if [ "${DIFF}" != "" ]; then
 				# 	rm -r ${linkedName}
@@ -48,7 +48,7 @@ auto_link_dotfiles2() {
 				# fi
 			else
 				ln -sf ${f} ${linkedName}
-				echo -e "\t-> linked ${f} -> ${linkedName}"
+				log "\t-> linked ${f} -> ${linkedName}"
 			fi
 		done
 	fi

@@ -21,7 +21,7 @@ White='\033[1;37m'
 colors[0]=${Black}
 colors[1]=${DarkGray}
 colors[2]=${LightGray}
-colors[3]=${LightRed}
+colors[3]=${LightCyan}
 colors[4]=${Green}
 colors[5]=${LightGreen}
 colors[6]=${BrownOrange}
@@ -31,7 +31,7 @@ colors[9]=${LightBlue}
 colors[10]=${Purple}
 colors[11]=${LightPurple}
 colors[12]=${Cyan}
-colors[13]=${LightCyan}
+# colors[13]=${LightRed}
 # colors[14]=${Red}
 # colors[15]=${White}
 

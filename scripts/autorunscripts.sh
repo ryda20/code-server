@@ -2,12 +2,15 @@
 
 # loop & print a folder recusively,
 print_folder_recurse() {
+	basename_old=${basename}
+	dirname_old=${dirname}
+
     for f in "$1"/*;do
         if [ -d "${f}" ];then
             # recurse for directory
             print_folder_recurse "${f}"
         elif [ -f "${f}" ] ; then
-			basename=$(basename -- "${f}")
+			# basename=$(basename -- "${f}")
 			# extension="${basename##*.}"
 			# filename="${basename%.*}"
 			# log "file: ${f}, basename: ${basename}, filename: ${filename}, extension: ${extension}"
@@ -16,7 +19,7 @@ print_folder_recurse() {
 			# show, the dirname (working dir) will be dirname of entrypoint.sh
 			# but, in run_me.sh scripts (in autorunscripts) will use it own dirname,
 			# so, we need to change dirname for them work correctly
-			if [[ "${basename}" == "run_me.sh" ]] ; then
+			if [[ "$(basename -- ${f})" == "run_me.sh" ]] ; then
 				# basename=$(basename ${0})
 				# dirname=$(dirname ${0})
 				# https://stackoverflow.com/questions/35006457/choosing-between-0-and-bash-source
@@ -26,6 +29,8 @@ print_folder_recurse() {
 			fi
         fi
     done
+	basename=${basename_old}
+	dirname=${dirname_old}
 }
 
 auto_run_scripts() {

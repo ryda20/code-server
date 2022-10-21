@@ -1,5 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 set -e
+
 #
 # this container will run root (default)
 # this entrypoint is starting with root user
@@ -18,10 +19,10 @@ log_title() {
 	echo "=============================================="
 	log "$@"
 	echo "=============================================="
-	echo ""
 }
 
 log_title "whoami: $(whoami), $(id)\nPUID:PGID = ${PUID}:${PGID}"
+
 
 if [ -f "/sbin/openrc" ]; then
 	log_title "starting openrc"
@@ -40,8 +41,6 @@ log_title "auto link dotfiles to user home directory"
 source /scripts/dotfiles.sh
 # link for stduser
 auto_link_dotfiles "/dotfiles" ${MY_HOME}
-# link for root
-# auto_link_dotfiles "/dotfiles"
 echo "=============================================="
 
 # check folder /autorunscripts to run specical file name 'run_me.sh'

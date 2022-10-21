@@ -88,12 +88,13 @@ RUN \
 RUN \
 	if [ "${install_sshd}" == "yes" ] ; then \
 	echo "*** Install OpenSSH ***" ; \
+	# openssh require openrc
 	apk add --no-cache openssh ; \
 	# mkdir -p /root/.ssh ; \
 	# chmod 0700 /root/.ssh ; \
 	ssh-keygen -A ; \
 	echo -e "PasswordAuthentication no" >> /etc/ssh/sshd_config ; \
-	# echo "${ssh_public_key}" > /root/.ssh/authorized_keys ; \
+	rc-update add sshd default; \
 	fi #ENDRUN
 
 RUN \

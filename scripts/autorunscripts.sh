@@ -11,9 +11,18 @@ print_folder_recurse() {
 			# extension="${basename##*.}"
 			# filename="${basename%.*}"
 			# log "file: ${f}, basename: ${basename}, filename: ${filename}, extension: ${extension}"
+			#
+			# because we run run_me.sh script in autorunscripts by calling source command
+			# show, the dirname (working dir) will be dirname of entrypoint.sh
+			# but, in run_me.sh scripts (in autorunscripts) will use it own dirname,
+			# so, we need to change dirname for them work correctly
 			if [[ "${basename}" == "run_me.sh" ]] ; then
-				# log "working on ${f}"
-				source "${f}"
+				# basename=$(basename ${0})
+				# dirname=$(dirname ${0})
+				# https://stackoverflow.com/questions/35006457/choosing-between-0-and-bash-source
+				# or using ${BASH_SOURCE[0]} inside script file to find out basename and dirname
+				# BASH_SOURCE is a full path to script file
+				basename=$(basename "${f}") dirname=$(dirname "${f}") source "${f}"
 			fi
         fi
     done

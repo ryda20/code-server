@@ -1,7 +1,7 @@
 #!/bin/bash
 source /scripts/base.sh
 
-set -e
+# set -e
 
 #
 # this container will run root (default)
@@ -35,9 +35,19 @@ log_title "dotfiles execution"
 source /scripts/dotfiles.sh
 # link for stduser
 auto_link_dotfiles "/dotfiles" ${MY_HOME}
+# load my one of .*rc file to this current session
+for f in ${MY_HOME}/.[^.]*; do
+	log "loading env from: ${f}"
+	# why we need to load env now? becaue in autorunscripts maybe need those env or PATH correctly to install something
+	# or config something
+	# force home to MY_HOME because in .*rc maybe using `~` or HOME env that point to home directory of current user,
+	# but we are in root user now and we want to setting for MY_USER
+	HOME=${MY_HOME} source ${f}
+	break
+done
 log_end
 
-# check folder /autorunscripts to run specical file name 'run_me.sh'
+
 source /scripts/autorunscripts.sh
 auto_run_scripts "/autorunscripts"
 

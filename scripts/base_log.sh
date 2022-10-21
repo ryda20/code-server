@@ -40,7 +40,7 @@ colors_index=0
 colors_index_pre=0
 random_color=${colors[$colors_index]}  # default color is black
 
-equal_line="============================================================================================"
+equal_line="==============================================================================="
 
 random_color_gen() {
 	# generate random color
@@ -76,7 +76,7 @@ log_title() {
 
 	# force to use color for sure it display correctly because above code seems not working for all system
 	echo -e "${random_color}#${equal_line}${NC}"
-	echo -e "${Red}# script: ${0}${NC}"
+	echo -e "${Red}# script: ${dirname}/${basename}${NC}"
 	echo -e "${Red}# $@ ${NC}"
 }
 

@@ -52,23 +52,37 @@ random_color_gen() {
 	random_color=${colors[$colors_index]}
 }
 
+
+# works follow:
+# log_title
+# log
+# ....
+# log_end
+
 log() {
-	echo -e "# $@"
+	# echo -e "# $@"
+	# some system dont show correctly color, so, i force to use
+	echo -e "${random_color}# $@ ${NC}"
 }
 
 log_title() {
 	random_color_gen
 
-	echo -e "${random_color}#${equal_line}"
-	# force Red color for script
-	echo -e "${Red}# script: ${0}"
-	# set back to random color
-	echo -e "${random_color}# $@"
+	# echo -e "${random_color}#${equal_line}"
+	# # force Red color for script
+	# echo -e "${Red}# script: ${0}"
+	# # set back to random color
+	# echo -e "${Red}# $@ ${random_color}"
+
+	# force to use color for sure it display correctly because above code seems not working for all system
+	echo -e "${random_color}#${equal_line}${NC}"
+	echo -e "${Red}# script: ${0}${NC}"
+	echo -e "${Red}# $@ ${NC}"
 }
 
 log_end() {
 	# clear color at the end
-	echo -e "#${equal_line}${NC}"
+	echo -e "${random_color}#${equal_line}${NC}"
 	# add more empty line
 	echo ""
 }

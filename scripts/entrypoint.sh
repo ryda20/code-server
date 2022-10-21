@@ -31,24 +31,23 @@ log_end
 #note: below is working but when exec or attach from docker, user still as root
 # this mean, below only for this script session
 
-log_title "auto link dotfiles to user home directory"
+log_title "dotfiles execution"
 source /scripts/dotfiles.sh
 # link for stduser
 auto_link_dotfiles "/dotfiles" ${MY_HOME}
 log_end
 
 # check folder /autorunscripts to run specical file name 'run_me.sh'
-log_title "find and run scripts from autorunscripts"
 source /scripts/autorunscripts.sh
 auto_run_scripts "/autorunscripts"
-log_end
+
 
 ### exec will replace running process (by root above) with the new one (by stdUser below)
 
 ## check and change PUID PGID if specify
+log_title "Checking for UID/GID.User must send correct uid/gid (by PUID/PGID env) for the mount ${MY_WORKS}, because we dont change it permission"
 _gid=$(id -g ${MY_GROUP})
 _uid=$(id -u ${MY_USER})
-log_title "Checking for UID/GID.User must send correct uid/gid (by PUID/PGID env) for the mount ${MY_WORKS}, because we dont change it permission"
 if [ -n ${PGID} ] && [ ${_gid} != ${PGID} ]; then
 	log "changing GID from ${_gid} to ${PGID}"
 	groupmod -og ${PGID} ${MY_GROUP}
@@ -86,6 +85,5 @@ log_title "setup for auto change to ${MY_USER} when start bash shell"
 log_end
 
 
-log_title "changing 'root' user to '${MY_USER}'..."
 # chmod 4755 $(which su)
 exec su ${MY_USER} -c /scripts/entrypoint-user.sh
